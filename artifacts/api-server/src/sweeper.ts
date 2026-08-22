@@ -48,7 +48,14 @@ export async function runSweeper() {
       
       // Simulate sending email
       const [user] = await db.select().from(usersTable).where(eq(usersTable.id, waitlistEntry.userId));
-      console.log(`[Sweeper] EMAIL DISPATCHED TO: ${user?.email} -> "A seat has opened up! Claim it within 1 hour."`);
+      if (user) {
+        const { sendEmail } = await import("./mailer");
+        await sendEmail(
+          user.email,
+          "Your Paradox Ticket Waitlist Seat is Available!",
+          `<p>A seat has opened up for you! Claim it within 1 hour before it expires.</p>`
+        );
+      }
     }
   }
 }

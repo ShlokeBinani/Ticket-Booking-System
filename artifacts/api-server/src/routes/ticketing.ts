@@ -193,12 +193,12 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   // Generate QR
   const qrUrl = makeQr(reference);
 
-  // Email simulation
-  console.log(`\n=================================================`);
-  console.log(`EMAIL DISPATCHED TO: ${req.user?.email}`);
-  console.log(`SUBJECT: Your Ticket Booking Confirmation - ${reference}`);
-  console.log(`QR CODE URL: ${qrUrl}`);
-  console.log(`=================================================\n`);
+  const { sendEmail } = await import("../mailer");
+  await sendEmail(
+    req.user!.email,
+    "Your Paradox Ticket is Confirmed",
+    `<p>Thank you for your booking.</p><p>Your unique QR Ticket Code: <strong>${qrUrl}</strong></p><img src="${qrUrl}" alt="Ticket QR" />`
+  );
 
   res.status(201).json({
     id: `b-${Date.now()}`,

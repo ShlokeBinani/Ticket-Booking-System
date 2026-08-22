@@ -9,7 +9,7 @@ export const venuesTable = pgTable("venues", {
   address: text("address").notNull(),
 });
 
-export const insertVenueSchema = createInsertSchema(venuesTable).omit({ id: true });
+export const insertVenueSchema = createInsertSchema(venuesTable).omit({ id: true }) as any;
 export type InsertVenue = z.infer<typeof insertVenueSchema>;
 export type Venue = typeof venuesTable.$inferSelect;
 

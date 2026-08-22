@@ -13,13 +13,13 @@ router.post("/register", async (req: Request, res: Response) => {
     const { email, password, name, role } = req.body;
     
     if (!email || !password || !name) {
-      return res.status(400).json({ error: "Missing required fields" });
+      res.status(400).json({ error: "Missing required fields" });
     }
 
     const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
     
     if (existingUser.length > 0) {
-      return res.status(409).json({ error: "Email already registered" });
+      res.status(409).json({ error: "Email already registered" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -59,19 +59,19 @@ router.post("/login", async (req: Request, res: Response) => {
     const { email, password } = req.body;
     
     if (!email || !password) {
-      return res.status(400).json({ error: "Missing required fields" });
+      res.status(400).json({ error: "Missing required fields" });
     }
 
     const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
     
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).json({ error: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     
     if (!isMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).json({ error: "Invalid credentials" });
     }
 
     const token = jwt.sign(

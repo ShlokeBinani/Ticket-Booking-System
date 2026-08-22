@@ -15,7 +15,7 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Missing or invalid authorization token" });
+    res.status(401).json({ error: "Missing or invalid authorization token" }); return;
   }
 
   const token = authHeader.split(" ")[1];
@@ -25,18 +25,18 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: "Invalid or expired token" });
+    res.status(401).json({ error: "Invalid or expired token" }); return;
   }
 };
 
 export const requireRole = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" }); return;
     }
     
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: "Forbidden: insufficient permissions" });
+      res.status(403).json({ error: "Forbidden: insufficient permissions" }); return;
     }
     
     next();

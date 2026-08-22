@@ -29,6 +29,6 @@ export const showPricingTable = pgTable("show_pricing", {
   price: integer("price").notNull(), // In Rupees
 });
 
-export const insertEventSchema = createInsertSchema(eventsTable).omit({ id: true });
+export const insertEventSchema = createInsertSchema(eventsTable).omit({ id: true }) as any;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof eventsTable.$inferSelect;

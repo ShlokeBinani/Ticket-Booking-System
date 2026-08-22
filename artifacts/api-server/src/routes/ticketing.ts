@@ -38,15 +38,15 @@ router.get("/events", async (req, res) => {
 });
 
 router.get("/events/:id", async (req, res) => {
-  const eventId = parseInt(req.params.id);
-  if (isNaN(eventId)) return res.status(400).json({ error: "Invalid ID" });
+  const eventId = parseInt(req.params.id as string);
+  if (isNaN(eventId)) res.status(400).json({ error: "Invalid ID" });
 
   const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId)).limit(1);
-  if (!event) return res.status(404).json({ error: "Event not found" });
+  if (!event) res.status(404).json({ error: "Event not found" });
 
   const shows = await db.select().from(showsTable).where(eq(showsTable.eventId, eventId));
 
-  return res.json({
+  res.json({
     ...event,
     id: event.id.toString(),
     shows: shows.map(s => ({
@@ -61,8 +61,8 @@ router.get("/events/:id", async (req, res) => {
 });
 
 router.get("/shows/:id/seats", async (req, res) => {
-  const showId = parseInt(req.params.id);
-  if (isNaN(showId)) return res.status(400).json({ error: "Invalid show ID" });
+  const showId = parseInt(req.params.id as string);
+  if (isNaN(showId)) res.status(400).json({ error: "Invalid show ID" });
 
   // Get seats for show, checking if held_until is expired
   const seats = await db.select({
@@ -96,7 +96,7 @@ router.get("/shows/:id/seats", async (req, res) => {
 
 // requireAuth added here!
 router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
-  const showId = parseInt(req.params.id);
+  const showId = parseInt(req.params.id as string);
   const body = CreateSeatHoldBody.parse(req.body);
   const seatIds = body.seatIds.map(id => parseInt(id));
 
@@ -136,15 +136,15 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
     });
 
     if (holdResult.error) {
-      return res.status(409).json({ error: holdResult.error });
+      res.status(409).json({ error: holdResult.error });
     }
 
     // In a real app we'd save a "hold record", but here the `show_seats` implicitly tracks it
     // We return a pseudo-holdId
     const holdId = req.user?.id + "-" + Date.now();
-    return res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt?.toISOString(), total: seatIds.length * 500 });
+    res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt?.toISOString(), total: seatIds.length * 500 });
   } catch (err) {
-    return res.status(500).json({ error: "Failed to hold seats" });
+    res.status(500).json({ error: "Failed to hold seats" });
   }
 });
 
@@ -164,7 +164,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
     
   const validSeats = heldSeats.filter(s => s.heldUntil && s.heldUntil > now);
   if (validSeats.length === 0) {
-    return res.status(410).json({ error: "Your seat hold expired. Please choose seats again." });
+    res.status(410).json({ error: "Your seat hold expired. Please choose seats again." });
   }
 
   const reference = `PX${Math.random().toString(36).slice(2, 8).toUpperCase()}`;

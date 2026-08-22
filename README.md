@@ -54,3 +54,6 @@ We use a mock console output for emails locally. For production:
 - Frontend: React, Vite, Tailwind CSS, Tanstack Query, Wouter
 - Backend: Express, Node.js, Drizzle ORM, PostgreSQL
 - Auth: JWT, bcryptjs
+## Demo Accounts
+- **Admin**: admin@demo.com / 12345678
+- **Organiser**: organizer@demo.com / 12345678

@@ -22,4 +22,9 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Run sweeper every 30 seconds
+  setInterval(() => {
+    runSweeper().catch(err => logger.error({ err }, "Sweeper error"));
+  }, 30000);
 });

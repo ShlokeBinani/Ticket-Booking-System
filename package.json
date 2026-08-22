@@ -10,8 +10,6 @@
     },
     "private": true,
     "devDependencies": {
-        "@esbuild/win32-x64": "^0.28.2",
-        "@rollup/rollup-win32-x64-msvc": "^4.62.5",
         "prettier": "^3.9.6",
         "typescript": "~5.9.3"
     },

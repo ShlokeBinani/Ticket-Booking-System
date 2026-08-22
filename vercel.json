@@ -1,0 +1,4 @@
+{
+    "outputDirectory":  "artifacts/paradox-ticket/dist/public",
+    "buildCommand":  "pnpm --filter @workspace/paradox-ticket run build"
+}

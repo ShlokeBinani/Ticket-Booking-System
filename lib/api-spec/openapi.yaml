@@ -1,22 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Paradox Ticket booking API
 servers:
   - url: /api
-    description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: events
+  - name: shows
+  - name: bookings
+  - name: support
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +24,282 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: Browse events
+      parameters:
+        - in: query
+          name: city
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Event" }
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get an event
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventDetail" }
+  /shows/{id}/seats:
+    get:
+      operationId: getShowSeats
+      tags: [shows]
+      summary: Get live seat map
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Seat map
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Seat" }
+  /shows/{id}/holds:
+    post:
+      operationId: createSeatHold
+      tags: [shows]
+      summary: Hold seats for checkout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HoldInput" }
+      responses:
+        "201":
+          description: Hold
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "409":
+          description: Seat unavailable
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: Booking history
+      responses:
+        "200":
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Booking" }
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Confirm a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingInput" }
+      responses:
+        "201":
+          description: Confirmed booking
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Booking" }
+  /bookings/{id}/cancel:
+    post:
+      operationId: cancelBooking
+      tags: [bookings]
+      summary: Cancel a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cancelled booking
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Booking" }
+  /waitlist:
+    post:
+      operationId: joinWaitlist
+      tags: [bookings]
+      summary: Join an event waitlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WaitlistInput" }
+      responses:
+        "201":
+          description: Waitlist entry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WaitlistEntry" }
+  /support:
+    post:
+      operationId: createSupportRequest
+      tags: [support]
+      summary: Send support request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportInput" }
+      responses:
+        "201":
+          description: Support request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportMessage" }
 components:
   schemas:
     HealthStatus:
       type: object
+      properties: { status: { type: string } }
+      required: [status]
+    Event:
+      type: object
+      required: [id, title, type, city, venue, date, time, price, image, status]
       properties:
-        status:
-          type: string
-      required:
-        - status
-
+        id: { type: string }
+        title: { type: string }
+        type: { type: string }
+        city: { type: string }
+        venue: { type: string }
+        date: { type: string }
+        time: { type: string }
+        price: { type: number }
+        image: { type: string }
+        status: { type: string }
+        category: { type: string }
+        rating: { type: number }
+    EventDetail:
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required: [description, shows]
+          properties:
+            description: { type: string }
+            shows:
+              type: array
+              items: { $ref: "#/components/schemas/Show" }
+    Show:
+      type: object
+      required: [id, date, time, language, format, available]
+      properties:
+        id: { type: string }
+        date: { type: string }
+        time: { type: string }
+        language: { type: string }
+        format: { type: string }
+        available: { type: number }
+    Seat:
+      type: object
+      required: [id, row, number, category, status, price]
+      properties:
+        id: { type: string }
+        row: { type: string }
+        number: { type: number }
+        category: { type: string }
+        status: { type: string }
+        price: { type: number }
+    HoldInput:
+      type: object
+      required: [seatIds]
+      properties:
+        seatIds:
+          type: array
+          items: { type: string }
+    Hold:
+      type: object
+      required: [id, seatIds, expiresAt, total]
+      properties:
+        id: { type: string }
+        seatIds:
+          type: array
+          items: { type: string }
+        expiresAt: { type: string }
+        total: { type: number }
+    BookingInput:
+      type: object
+      required: [holdId, email, paymentMethod]
+      properties:
+        holdId: { type: string }
+        email: { type: string }
+        paymentMethod: { type: string }
+        foodItems:
+          type: array
+          items: { type: string }
+    Booking:
+      type: object
+      required: [id, reference, eventTitle, venue, date, time, seats, total, status, qr]
+      properties:
+        id: { type: string }
+        reference: { type: string }
+        eventTitle: { type: string }
+        venue: { type: string }
+        date: { type: string }
+        time: { type: string }
+        seats:
+          type: array
+          items: { type: string }
+        total: { type: number }
+        status: { type: string }
+        qr: { type: string }
+    WaitlistInput:
+      type: object
+      required: [eventId, category, email]
+      properties:
+        eventId: { type: string }
+        category: { type: string }
+        email: { type: string }
+    WaitlistEntry:
+      type: object
+      required: [id, position, category, status]
+      properties:
+        id: { type: string }
+        position: { type: number }
+        category: { type: string }
+        status: { type: string }
+    SupportInput:
+      type: object
+      required: [name, email, message]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        message: { type: string }
+    SupportMessage:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string }

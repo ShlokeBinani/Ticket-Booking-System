@@ -1,4 +1,10 @@
 {
     "outputDirectory":  "artifacts/paradox-ticket/dist/public",
-    "buildCommand":  "pnpm --filter @workspace/paradox-ticket run build"
+    "buildCommand":  "pnpm --filter @workspace/paradox-ticket run build",
+    "rewrites":  [
+                     {
+                         "destination":  "/",
+                         "source":  "/(.*)"
+                     }
+                 ]
 }

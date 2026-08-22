@@ -228,3 +228,35 @@ router.post("/waitlist", requireAuth, async (req: AuthRequest, res) => {
 });
 
 export default router;
+
+// --- Admin & Organiser Endpoints for PDF Requirements ---
+
+// Admin creates and manages venues
+router.post("/admin/venues", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+  
+  const { name, city, address, capacity } = req.body;
+  const [venue] = await db.insert(venuesTable).values({
+    name, city, address, capacity
+  }).returning();
+  
+  res.status(201).json(venue);
+});
+
+// Organiser creates event listing
+router.post("/organiser/events", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "organiser" && req.user?.role !== "admin") return res.status(403).json({ error: "Organiser access required" });
+  
+  const { title, type, category, description, venueId, showDate } = req.body;
+  const [event] = await db.insert(eventsTable).values({
+    title, type, category, description
+  }).returning();
+  
+  const [show] = await db.insert(showsTable).values({
+    eventId: event.id,
+    venueId,
+    showDate: new Date(showDate)
+  }).returning();
+  
+  res.status(201).json({ event, show });
+});

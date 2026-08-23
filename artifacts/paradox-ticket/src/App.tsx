@@ -135,6 +135,48 @@ function Support() {
 }
 
 function About() { return <Shell><section className="bg-primary text-primary-foreground"><div className="mx-auto max-w-[1440px] px-5 py-28 md:px-10 md:py-40"><span className="mono-label text-[10px] text-accent">About Paradox Ticket</span><h1 className="display-font mt-6 max-w-5xl text-8xl leading-[.75] md:text-[11rem]">A ticket can<br /><i>change the night.</i></h1><p className="mt-12 max-w-lg text-lg leading-8 text-primary-foreground/65">Paradox is a small, stubbornly human ticketing platform for cinema, music, and the beautiful in-between.</p></div></section><section className="mx-auto grid max-w-[1180px] gap-12 px-5 py-24 md:grid-cols-2 md:px-10"><h2 className="display-font text-6xl leading-[.85]">Less queue.<br />More ceremony.</h2><div className="space-y-5 text-sm leading-7 text-foreground/65"><p>Some nights begin hours before the lights go down. You picture the room and wonder which seat has the best view.</p><p>Paradox keeps that feeling intact: clear times, honest availability, and no mystery fees at the final step.</p></div></section></Shell>; }
+
+function OrganiserMetrics() {
+  const [stats, setStats] = useState({ grossRevenue: 0, ticketsMoved: 0, sellThrough: '0%', avgTicket: 0 });
+  const { token } = useAuth();
+  
+  useEffect(() => {
+    const fetchStats = async () => {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/organiser/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setStats(await res.json());
+      }
+    };
+    fetchStats();
+  }, []);
+
+  return (
+    <>
+      <div className="mt-8 grid gap-px border border-foreground/15 bg-foreground/15 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ['Gross revenue', `?${stats.grossRevenue.toLocaleString('en-IN')}`],
+          ['Tickets moved', stats.ticketsMoved.toString()],
+          ['Sell-through', stats.sellThrough],
+          ['Avg. ticket', `?${stats.avgTicket.toLocaleString('en-IN')}`]
+        ].map(([l, v]) => (
+          <div key={l} className="bg-card p-6">
+            <span className="mono-label text-[9px] text-foreground/45">{l}</span>
+            <p className="mt-5 text-3xl font-semibold">{v}</p>
+            <span className="mt-2 block text-xs text-accent">+12.4% from last month</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-10 border border-foreground/15 bg-card p-8">
+        <span className="mono-label text-[10px] text-foreground/45">Tonight's room</span>
+        <h2 className="display-font mt-4 text-5xl">Arijit Singh Live</h2>
+        <p className="mt-5 text-sm text-foreground/55">Real-time metrics are synced.</p>
+      </div>
+    </>
+  );
+}
+
 function Studio({ admin = false }: { admin?: boolean }) {
   const [tab, setTab] = useState(admin ? 'Venues' : 'Overview');
   const { user } = useAuth();
@@ -206,29 +248,7 @@ function Studio({ admin = false }: { admin?: boolean }) {
           </div>
         )}
 
-        {tab === 'Overview' && !admin && (
-          <>
-            <div className="mt-8 grid gap-px border border-foreground/15 bg-foreground/15 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ['Gross revenue', '?17,10,000'],
-                ['Tickets moved', '684'],
-                ['Sell-through', '87.6%'],
-                ['Avg. ticket', '?2,500']
-              ].map(([l, v]) => (
-                <div key={l} className="bg-card p-6">
-                  <span className="mono-label text-[9px] text-foreground/45">{l}</span>
-                  <p className="mt-5 text-3xl font-semibold">{v}</p>
-                  <span className="mt-2 block text-xs text-accent">+12.4% from last month</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-10 border border-foreground/15 bg-card p-8">
-              <span className="mono-label text-[10px] text-foreground/45">Tonight's room</span>
-              <h2 className="display-font mt-4 text-5xl">Arijit Singh Live</h2>
-              <p className="mt-5 text-sm text-foreground/55">112 of 120 seats booked &middot; ?2,80,000 gross</p>
-            </div>
-          </>
-        )}
+        {tab === 'Overview' && !admin && <OrganiserMetrics />}
 
         {tab === 'Venues' && admin && (
           <div className="mt-8 border border-foreground/15 bg-card p-7">

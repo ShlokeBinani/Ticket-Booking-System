@@ -1,5 +1,4 @@
 // @ts-nocheck
-import nodemailer from "nodemailer";
 import { Router, type IRouter, type Request } from "express";
 import { db } from "@workspace/db";
 import { eventsTable, showsTable, venuesTable, showSeatsTable, seatLayoutsTable, bookingsTable, bookingSeatsTable, waitlistTable, seatCategoriesTable, showPricingTable } from "@workspace/db/schema";

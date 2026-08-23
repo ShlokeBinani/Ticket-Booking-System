@@ -244,6 +244,12 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       </div>
     </div>
   `;
+  try {
+    await sendEmail(recipientEmail, emailSubject, emailBody);
+  } catch (err) {
+    console.error("[Email Error]", err);
+  }
+
   res.status(201).json({
     id: `b-${Date.now()}`,
     reference,
@@ -256,14 +262,6 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
     status: "Confirmed",
     qr: qrUrl
   });
-
-  try {
-    // Note: Vercel Free Tier silently drops outbound connections to port 465 (Gmail SMTP),
-    // which causes this to timeout and fail in the background.
-    await sendEmail(recipientEmail, emailSubject, emailBody);
-  } catch (err) {
-    console.error("[Email Error]", err);
-  }
 });
 
 // ══════════════════════════════════════════════════════════════════════

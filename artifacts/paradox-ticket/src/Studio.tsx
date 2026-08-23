@@ -218,7 +218,7 @@ export function Studio({ admin = false }: { admin?: boolean }) {
               </div>
             </div>
           ))}
-          {tickets.length === 0 && <p>No tickets found.</p>}
+          {tickets.length === 0 && <p className="text-primary-foreground/70">No tickets found.</p>}
         </div>
       )}
     </div>

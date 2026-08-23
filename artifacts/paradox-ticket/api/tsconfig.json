@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noImplicitReturns": false,
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "skipLibCheck": true,
+    "isolatedModules": false
+  }
+}

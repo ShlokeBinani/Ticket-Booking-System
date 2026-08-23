@@ -260,7 +260,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       </div>
     `;
 
-    sendEmail(body.email || req.user!.email, emailSubject, emailBody);
+    await sendEmail(body.email || req.user!.email, emailSubject, emailBody);
 
   res.status(201).json({
     id: `b-${Date.now()}`,

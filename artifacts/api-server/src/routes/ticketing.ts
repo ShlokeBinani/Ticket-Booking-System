@@ -159,10 +159,7 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
             eq(showSeatsTable.showId, showId),
             inArray(showSeatsTable.id, seatIds)
           )
-        )
-        // FOR UPDATE to prevent concurrent reads/writes
-        // Note: Drizzle raw SQL for FOR UPDATE is `.for('update')` in newer versions, or manual query
-        // This acts as our concurrency lock.
+        ).for('update');
         
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 mins TTL
@@ -344,6 +341,20 @@ router.post("/bookings/:id/cancel", requireAuth, async (req: AuthRequest, res) =
     await tx.delete(bookingSeatsTable).where(eq(bookingSeatsTable.bookingId, bookingId));
     await tx.delete(bookingsTable).where(eq(bookingsTable.id, bookingId));
   });
+
+  // Auto-assign to waitlist
+  for (const seatId of seatIds) {
+    const [waitlister] = await db.select().from(waitlistTable).where(and(eq(waitlistTable.showId, booking.showId), eq(waitlistTable.status, "waiting"))).orderBy(waitlistTable.joinedAt).limit(1);
+    if (waitlister) {
+       const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+       await db.update(showSeatsTable).set({ status: "held", heldUntil: expires }).where(eq(showSeatsTable.id, seatId));
+       await db.update(waitlistTable).set({ status: "offered", offeredSeatId: seatId, offerExpiresAt: expires }).where(eq(waitlistTable.id, waitlister.id));
+       const [u] = await db.select().from(usersTable).where(eq(usersTable.id, waitlister.userId));
+       if (u && u.email) {
+         await sendEmail(u.email, "Seat Available!", `A seat opened up! Claim it here: https://paradox-ticket-platform.vercel.app/waitlist/offer/${waitlister.id}`);
+       }
+    }
+  }
 
   const ev = await getEventByShowId(booking.showId);
   res.json({

@@ -313,7 +313,7 @@ router.post("/waitlist", requireAuth, async (req: AuthRequest, res) => {
   
   const [entry] = await db.insert(waitlistTable).values({
     userId: req.user!.id,
-    showId: 1,
+    showId: parseInt(body.eventId) || 1,
     categoryId: body.category === "Premium" ? 1 : 2,
     status: "waiting"
   }).returning();

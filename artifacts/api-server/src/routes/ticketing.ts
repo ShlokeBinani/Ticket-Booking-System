@@ -81,9 +81,9 @@ router.get("/shows/:id/seats", async (req, res) => {
       id: s.id.toString(),
       row: s.row,
       number: s.number,
-      category: s.categoryId === 1 ? "Premium" : "Standard",
+      category: (s.row === "A" || s.row === "B" || s.categoryId === 1) ? "Premium" : "Standard",
       status: currentStatus,
-      price: s.categoryId === 1 ? 3000 : 2500 // In Rupees
+      price: (s.row === "A" || s.row === "B" || s.categoryId === 1) ? 3000 : 2500
     };
   }));
 });

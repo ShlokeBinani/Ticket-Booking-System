@@ -3,7 +3,7 @@
 A cinematic booking experience for movies, concerts, and live events. Customers can discover events, choose seats from a live visual map, pay online, receive QR tickets via email, cancel bookings, and join category-specific waitlists.   
 
 ## Features
-- **Visual Seat Map**: Pick your seats visually. 
+- **Visual Seat Map**: Pick your seats visually.  
 - **Seat Hold & Concurrency**: Seats are held for a TTL of 10 minutes when selected. Other users cannot book them simultaneously.
 - **Waitlist Logic**: Sold out seats? Join the waitlist, and if a ticket is cancelled, the sweeper cron automatically assigns the seat and emails the first person on the waitlist.
 - **QR Codes**: Every booking generates a unique QR code.

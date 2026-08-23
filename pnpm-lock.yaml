@@ -151,6 +151,9 @@ importers:
 
   .:
     dependencies:
+      esbuild:
+        specifier: 0.27.3
+        version: 0.27.3
       nodemailer:
         specifier: ^6.10.1
         version: 6.10.1
@@ -431,10 +434,10 @@ importers:
     dependencies:
       '@tanstack/react-query':
         specifier: 'catalog:'
-        version: 5.102.0(react@19.1.0)
+        version: 5.102.0(react@19.2.8)
       react:
         specifier: '>=18'
-        version: 19.1.0
+        version: 19.2.8
 
   lib/api-spec:
     devDependencies:
@@ -2591,6 +2594,10 @@ packages:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
     engines: {node: '>=0.10.0'}
 
+  react@19.2.8:
+    resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
+    engines: {node: '>=0.10.0'}
+
   readdirp@5.1.1:
     resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
     engines: {node: '>= 20.19.0'}
@@ -4016,6 +4023,11 @@ snapshots:
       '@tanstack/query-core': 5.102.0
       react: 19.1.0
 
+  '@tanstack/react-query@5.102.0(react@19.2.8)':
+    dependencies:
+      '@tanstack/query-core': 5.102.0
+      react: 19.2.8
+
   '@types/babel__core@7.20.5':
     dependencies:
       '@babel/parser': 7.29.8
@@ -5098,6 +5110,8 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   react@19.1.0: {}
+
+  react@19.2.8: {}
 
   readdirp@5.1.1: {}
 

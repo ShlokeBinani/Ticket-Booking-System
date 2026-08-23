@@ -14,7 +14,8 @@ export const supportTicketsTable = pgTable("support_tickets", {
   email: text("email").notNull(),
   subject: text("subject").notNull(),
   message: text("message").notNull(),
-  reply: text("reply"),
+  reply: text('reply'),
+  eventId: integer('event_id').references(() => eventsTable.id),
   assignedTo: integer("assigned_to").references(() => usersTable.id), // Organiser ID
   status: ticketStatusEnum("status").default("Open").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

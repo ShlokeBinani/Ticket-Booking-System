@@ -4,6 +4,7 @@ import {
   venuesTable, seatCategoriesTable, seatLayoutsTable, 
   usersTable, eventsTable, showsTable 
 } from './schema/index.js';
+import { eq } from 'drizzle-orm';
 import * as schema from './schema/index.js';
 import * as dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
@@ -21,7 +22,7 @@ async function seed() {
   console.log("Seeding database...");
 
   // 1. Ensure we have an admin user and an organiser user
-  let [admin] = await db.select().from(usersTable).where(schema.eq(usersTable.email, 'admin@paradox.com'));
+  let [admin] = await db.select().from(usersTable).where(eq(usersTable.email, 'admin@paradox.com'));
   if (!admin) {
     const hash = await bcrypt.hash('password123', 10);
     [admin] = await db.insert(usersTable).values({
@@ -32,7 +33,7 @@ async function seed() {
     }).returning();
   }
 
-  let [organiser] = await db.select().from(usersTable).where(schema.eq(usersTable.email, 'organiser@paradox.com'));
+  let [organiser] = await db.select().from(usersTable).where(eq(usersTable.email, 'organiser@paradox.com'));
   if (!organiser) {
     const hash = await bcrypt.hash('password123', 10);
     [organiser] = await db.insert(usersTable).values({
@@ -45,14 +46,14 @@ async function seed() {
 
   // 2. Venues
   const venuesData = [
-    { name: "Jio World Drive", city: "Mumbai", address: "Bandra Kurla Complex", capacity: 120 },
-    { name: "JLN Stadium", city: "Delhi", address: "Pragati Vihar", capacity: 120 },
-    { name: "KTPO", city: "Bangalore", address: "Whitefield", capacity: 120 }
+    { name: "Jio World Drive", city: "Mumbai", address: "Bandra Kurla Complex", capacity: 72 },
+    { name: "JLN Stadium", city: "Delhi", address: "Pragati Vihar", capacity: 72 },
+    { name: "KTPO", city: "Bangalore", address: "Whitefield", capacity: 72 }
   ];
 
   const venues = [];
   for (const v of venuesData) {
-    let [venue] = await db.select().from(venuesTable).where(schema.eq(venuesTable.name, v.name));
+    let [venue] = await db.select().from(venuesTable).where(eq(venuesTable.name, v.name));
     if (!venue) {
       [venue] = await db.insert(venuesTable).values(v).returning();
     }
@@ -61,13 +62,13 @@ async function seed() {
 
   // 3. Categories and Layouts for venues
   for (const venue of venues) {
-    let [premiumCat] = await db.select().from(seatCategoriesTable).where(schema.eq(seatCategoriesTable.venueId, venue.id));
+    let [premiumCat] = await db.select().from(seatCategoriesTable).where(eq(seatCategoriesTable.venueId, venue.id));
     if (!premiumCat) {
       [premiumCat] = await db.insert(seatCategoriesTable).values({ venueId: venue.id, name: 'Premium' }).returning();
       const [standardCat] = await db.insert(seatCategoriesTable).values({ venueId: venue.id, name: 'Standard' }).returning();
 
       const layouts = [];
-      const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+      const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
       
       for (const row of rows) {
         for (let i = 1; i <= 12; i++) {
@@ -90,7 +91,7 @@ async function seed() {
   ];
 
   for (const e of eventsData) {
-    let [event] = await db.select().from(eventsTable).where(schema.eq(eventsTable.title, e.title));
+    let [event] = await db.select().from(eventsTable).where(eq(eventsTable.title, e.title));
     if (!event) {
       [event] = await db.insert(eventsTable).values({
         ...e,

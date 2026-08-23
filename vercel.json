@@ -1,13 +1,13 @@
 {
   "functions": {
-    "artifacts/paradox-ticket/api/**/*.ts": {
-      "includeFiles": "../../api-server/dist/**"
+    "api/**/*.ts": {
+      "includeFiles": "artifacts/api-server/dist/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/artifacts/paradox-ticket/api/index.ts"
+      "destination": "/api/index.ts"
     },
     {
       "source": "/(.*)",

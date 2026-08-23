@@ -67,8 +67,7 @@ catalog:
 autoInstallPeers: false
 
 
-  - msw
-  - unrs-resolver
+  - msw - unrs-resolver
 
 overrides:
   # our team uses linux-x64 only, we can exclude all other platforms
@@ -155,10 +154,8 @@ overrides:
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
 
-
-
-
-
-
 onlyBuiltDependencies:
   - esbuild
+
+allowBuilds:
+  esbuild: set this to true or false

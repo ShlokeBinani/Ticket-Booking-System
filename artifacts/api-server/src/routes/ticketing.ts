@@ -39,7 +39,7 @@ router.get("/events", async (req, res) => {
 
 router.get("/events/:id", async (req, res) => {
   const eventId = parseInt(req.params.id as string);
-  if (isNaN(eventId)) res.status(400).json({ error: "Invalid ID" });
+  if (isNaN(eventId)) return res.status(400).json({ error: "Invalid ID" });
 
   const event = eventsCatalog.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ error: "Event not found" });
@@ -55,7 +55,7 @@ router.get("/events/:id", async (req, res) => {
 
 router.get("/shows/:id/seats", async (req, res) => {
   const showId = parseInt(req.params.id as string);
-  if (isNaN(showId)) res.status(400).json({ error: "Invalid show ID" });
+  if (isNaN(showId)) return res.status(400).json({ error: "Invalid show ID" });
 
   // Get seats for show, checking if held_until is expired
   const seats = await db.select({
@@ -130,7 +130,7 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
     });
 
     if (holdResult.error) {
-      res.status(409).json({ error: holdResult.error });
+      return res.status(409).json({ error: holdResult.error });
     }
 
     // In a real app we'd save a "hold record", but here the `show_seats` implicitly tracks it
@@ -244,12 +244,6 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       </div>
     </div>
   `;
-  try {
-    await sendEmail(recipientEmail, emailSubject, emailBody);
-  } catch (err) {
-    console.error("[Email Error]", err);
-  }
-
   res.status(201).json({
     id: `b-${Date.now()}`,
     reference,
@@ -262,6 +256,14 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
     status: "Confirmed",
     qr: qrUrl
   });
+
+  try {
+    // Note: Vercel Free Tier silently drops outbound connections to port 465 (Gmail SMTP),
+    // which causes this to timeout and fail in the background.
+    await sendEmail(recipientEmail, emailSubject, emailBody);
+  } catch (err) {
+    console.error("[Email Error]", err);
+  }
 });
 
 // ══════════════════════════════════════════════════════════════════════

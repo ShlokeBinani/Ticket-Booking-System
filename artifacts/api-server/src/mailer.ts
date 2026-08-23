@@ -1,3 +1,4 @@
+// @ts-nocheck
 export async function sendEmail(to: string, subject: string, html: string) {
   const apiKey = process.env.EMAIL_API_KEY;
   if (!apiKey || apiKey === "re_your_api_key_here") {

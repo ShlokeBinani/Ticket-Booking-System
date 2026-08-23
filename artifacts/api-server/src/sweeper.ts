@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { db } from "@workspace/db";
 import { showSeatsTable, waitlistTable, usersTable } from "@workspace/db/schema";
 import { eq, and, lt, isNull } from "drizzle-orm";

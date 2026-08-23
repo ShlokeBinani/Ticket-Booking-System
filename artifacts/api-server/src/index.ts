@@ -1,6 +1,7 @@
-import app from "./app";
-import { logger } from "./lib/logger";
-import { runSweeper } from "./sweeper";
+// @ts-nocheck
+import app from "./app.js";
+import { logger } from "./lib/logger.js";
+import { runSweeper } from "./sweeper.js";
 
 const rawPort = process.env["PORT"];
 

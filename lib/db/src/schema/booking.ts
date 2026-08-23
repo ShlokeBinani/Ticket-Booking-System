@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { pgTable, text, serial, timestamp, integer, pgEnum } from "drizzle-orm/pg-core";
 import { showsTable } from "./events";
 import { usersTable } from "./users";

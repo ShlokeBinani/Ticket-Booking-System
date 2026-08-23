@@ -7,6 +7,7 @@
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "skipLibCheck": true,
-    "isolatedModules": false
+    "isolatedModules": false,
+    "esModuleInterop": true
   }
 }

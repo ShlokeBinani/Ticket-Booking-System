@@ -8,6 +8,7 @@ export const venuesTable = pgTable("venues", {
   name: text("name").notNull(),
   city: text("city").notNull(),
   address: text("address").notNull(),
+  capacity: integer("capacity").default(120).notNull(),
 });
 
 export const insertVenueSchema = createInsertSchema(venuesTable).omit({ id: true }) as any;

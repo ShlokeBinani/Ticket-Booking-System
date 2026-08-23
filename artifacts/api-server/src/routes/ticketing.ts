@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { Router, type IRouter, type Request } from "express";
 import { db } from "@workspace/db";
-import { eventsTable, showsTable, venuesTable, showSeatsTable, seatLayoutsTable, bookingsTable, bookingSeatsTable, waitlistTable, seatCategoriesTable, showPricingTable } from "@workspace/db/schema";
+import { eventsTable, showsTable, venuesTable, showSeatsTable, seatLayoutsTable, bookingsTable, bookingSeatsTable, waitlistTable, seatCategoriesTable, showPricingTable, supportTicketsTable, usersTable } from "@workspace/db/schema";
 import { eq, and, or, lt, sql, inArray, desc } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middlewares/auth.js";
 import { CreateBookingBody, CreateSeatHoldBody, JoinWaitlistBody } from "@workspace/api-zod";
@@ -15,41 +15,96 @@ function makeQr(reference: string) {
 
 // Ensure holds are cleaned implicitly by filtering `heldUntil < NOW()` or explicitly by a sweeper
 
-const eventsCatalog = [
-  { id: '1', title: 'Arijit Singh Live', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Jio World Drive', date: 'Oct 14', time: '19:00', price: 2500, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1540039155732-d688126b8b0b?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Experience the magic.' },
-  { id: '2', title: 'Diljit Dosanjh: Dil-Luminati', type: 'concert', category: 'Music', city: 'Delhi', venue: 'JLN Stadium', date: 'Nov 02', time: '18:30', price: 3999, status: 'Sold out', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'The biggest tour of the year.' },
-  { id: '3', title: 'Jawan', type: 'movie', category: 'Cinema', city: 'Mumbai', venue: 'PVR IMAX', date: 'Sep 07', time: '20:00', price: 450, status: 'Available', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Blockbuster movie.' },
-  { id: '4', title: 'Kalki 2898 AD', type: 'movie', category: 'Cinema', city: 'Bangalore', venue: 'Inox Megaplex', date: 'Jul 12', time: '17:45', price: 350, status: 'Filling fast', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Epic sci-fi.' },
-  { id: '5', title: 'Coldplay: Music of the Spheres', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'DY Patil Stadium', date: 'Jan 18', time: '18:00', price: 4500, status: 'Waitlist', image: 'https://images.unsplash.com/photo-1470229722913-7c090be3226a?q=80&w=800&auto=format&fit=crop', rating: 5.0, description: 'Global stadium tour.' },
-  { id: '6', title: 'Zakir Khan: Tathastu', type: 'comedy', category: 'Standup', city: 'Pune', venue: 'Balewadi Stadium', date: 'Dec 10', time: '19:30', price: 999, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Laugh out loud.' },
-  { id: '7', title: 'Sunburn Festival', type: 'concert', category: 'Music', city: 'Bangalore', venue: 'KTPO', date: 'Dec 29', time: '15:00', price: 3000, status: 'Available', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop', rating: 4.6, description: 'EDM festival.' },
-  { id: '8', title: 'Animal', type: 'movie', category: 'Cinema', city: 'Delhi', venue: 'PVR Director\'s Cut', date: 'Dec 01', time: '21:00', price: 800, status: 'Sold out', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', rating: 4.5, description: 'Action thriller.' },
-  { id: '9', title: 'Ed Sheeran: Mathematics Tour', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Racecourse', date: 'Mar 16', time: '19:00', price: 5500, status: 'Available', image: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Live in Mumbai.' },
-  { id: '10', title: 'Anubhav Singh Bassi: Kisi Ko Batana Mat', type: 'comedy', category: 'Standup', city: 'Delhi', venue: 'Siri Fort Aud.', date: 'Oct 22', time: '20:00', price: 1499, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1527224857830-43a7eaa58c73?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Standup special.' }
-];
-
-function getEventByShowId(showId: number) {
-  return eventsCatalog.find(e => e.id === String(showId)) || eventsCatalog[0];
-}
-
 router.get("/events", async (req, res) => {
-  res.json(eventsCatalog);
+  const events = await db.select({
+    id: eventsTable.id,
+    title: eventsTable.title,
+    type: eventsTable.type,
+    category: eventsTable.category,
+    description: eventsTable.description,
+    image: eventsTable.image,
+    rating: eventsTable.rating,
+  }).from(eventsTable);
+  
+  const mapped = events.map(e => ({
+    ...e,
+    id: String(e.id),
+    city: 'Multiple',
+    venue: 'Multiple',
+    date: 'TBA',
+    time: 'TBA',
+    price: 2500,
+    status: 'Available'
+  }));
+
+  // Fetch earliest show info for each event
+  for (const e of mapped) {
+    const show = await db.select({
+      id: showsTable.id,
+      showDate: showsTable.showDate,
+      venueName: venuesTable.name,
+      cityName: venuesTable.city,
+    }).from(showsTable).innerJoin(venuesTable, eq(showsTable.venueId, venuesTable.id)).where(eq(showsTable.eventId, parseInt(e.id))).limit(1);
+    
+    if (show.length > 0) {
+      const s = show[0];
+      e.city = s.cityName;
+      e.venue = s.venueName;
+      e.date = s.showDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      e.time = s.showDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+
+  res.json(mapped);
 });
+
+async function getEventByShowId(showId: number) {
+  const [show] = await db.select({
+    title: eventsTable.title,
+    venue: venuesTable.name,
+    showDate: showsTable.showDate,
+  }).from(showsTable)
+  .innerJoin(eventsTable, eq(showsTable.eventId, eventsTable.id))
+  .innerJoin(venuesTable, eq(showsTable.venueId, venuesTable.id))
+  .where(eq(showsTable.id, showId));
+  
+  if (!show) return { title: 'Unknown', venue: 'Unknown', date: 'TBA', time: 'TBA' };
+  
+  return {
+    title: show.title,
+    venue: show.venue,
+    date: show.showDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    time: show.showDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  };
+}
 
 router.get("/events/:id", async (req, res) => {
   const eventId = parseInt(req.params.id as string);
   if (isNaN(eventId)) return res.status(400).json({ error: "Invalid ID" });
 
-  const event = eventsCatalog.find(e => e.id === req.params.id);
+  const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
   if (!event) return res.status(404).json({ error: "Event not found" });
+
+  const shows = await db.select({
+    id: showsTable.id,
+    showDate: showsTable.showDate,
+    venueName: venuesTable.name,
+    capacity: venuesTable.capacity
+  }).from(showsTable).innerJoin(venuesTable, eq(showsTable.venueId, venuesTable.id)).where(eq(showsTable.eventId, eventId));
   
   res.json({
     ...event,
-    shows: [
-      { id: event.id, date: new Date().toISOString(), time: event.time, language: "English/Hindi", format: "Standard", available: 120 }
-    ]
+    id: String(event.id),
+    shows: shows.map(s => ({
+      id: String(s.id),
+      date: s.showDate.toISOString(),
+      time: s.showDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      venue: s.venueName,
+      language: "English/Hindi",
+      format: "Standard",
+      available: s.capacity || 120
+    }))
   });
-
 });
 
 router.get("/shows/:id/seats", async (req, res) => {
@@ -152,7 +207,7 @@ router.get("/bookings", requireAuth, async (req: AuthRequest, res) => {
     const seatIds = seatRels.map(r => r.showSeatId.toString());
     
     // Look up event from catalog to get correct title/venue/date/time
-    const ev = getEventByShowId(b.showId);
+    const ev = await getEventByShowId(b.showId);
     
     response.push({
       id: b.id.toString(),
@@ -210,7 +265,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const qrUrl = makeQr(reference);
 
   // Look up real event details from the catalog
-  const ev = getEventByShowId(validSeats[0].showId);
+  const ev = await getEventByShowId(validSeats[0].showId);
 
   // Wait for the email to send before responding, because Vercel serverless kills the process after response
   const recipientEmail = body.email || req.user!.email;
@@ -290,7 +345,7 @@ router.post("/bookings/:id/cancel", requireAuth, async (req: AuthRequest, res) =
     await tx.delete(bookingsTable).where(eq(bookingsTable.id, bookingId));
   });
 
-  const ev = getEventByShowId(booking.showId);
+  const ev = await getEventByShowId(booking.showId);
   res.json({
     id: bookingId.toString(),
     reference: booking.bookingReference,
@@ -342,46 +397,140 @@ router.get("/organiser/stats", requireAuth, async (req: AuthRequest, res) => {
   res.json({ grossRevenue, ticketsMoved, avgTicket, sellThrough });
 });
 
-export default router;
+// --- Admin & Organiser Endpoints ---
 
+// Users Management
+router.get("/admin/users", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+  const users = await db.select({
+    id: usersTable.id,
+    name: usersTable.name,
+    email: usersTable.email,
+    role: usersTable.role,
+    createdAt: usersTable.createdAt
+  }).from(usersTable);
+  res.json(users);
+});
 
-// --- Admin & Organiser Endpoints for PDF Requirements ---
+router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+  const { role } = req.body;
+  if (!['admin', 'organiser', 'customer'].includes(role)) return res.status(400).json({ error: "Invalid role" });
+  
+  const [updated] = await db.update(usersTable)
+    .set({ role })
+    .where(eq(usersTable.id, parseInt(req.params.id)))
+    .returning();
+  res.json(updated);
+});
 
-// Admin creates and manages venues
-// @ts-nocheck
+// Venues Management
+router.get("/admin/venues", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin" && req.user?.role !== "organiser") return res.status(403).json({ error: "Unauthorized" });
+  const venues = await db.select().from(venuesTable);
+  res.json(venues);
+});
+
 router.post("/admin/venues", requireAuth, async (req: AuthRequest, res) => {
   if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
-  
   const { name, city, address, capacity } = req.body;
-  // @ts-ignore
-    const [venue] = await db.insert(venuesTable).values({
-    name, city, address, capacity
-  }).returning();
-  
+  const [venue] = await db.insert(venuesTable).values({ name, city, address, capacity: parseInt(capacity) || 120 }).returning();
   res.status(201).json(venue);
 });
 
-// Organiser creates event listing
+router.delete("/admin/venues/:id", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+  await db.delete(venuesTable).where(eq(venuesTable.id, parseInt(req.params.id)));
+  res.json({ success: true });
+});
+
+// Events Management
 router.post("/organiser/events", requireAuth, async (req: AuthRequest, res) => {
-  if (req.user?.role !== "organiser" && req.user?.role !== "admin") return res.status(403).json({ error: "Organiser access required" });
-  
-  const { title, type, category, description, venueId, showDate } = req.body;
-  // @ts-ignore
-    const [event] = await db.insert(eventsTable).values({
-    title, type, category, description
+  if (req.user?.role !== "admin" && req.user?.role !== "organiser") return res.status(403).json({ error: "Unauthorized" });
+  const { title, type, category, description, venueId, showDate, image } = req.body;
+  const [event] = await db.insert(eventsTable).values({
+    title, type, category, description, image, organiserId: req.user!.id
   }).returning();
   
   const [show] = await db.insert(showsTable).values({
-    eventId: event.id,
-    venueId,
-    showDate: new Date(showDate)
+    eventId: event.id, venueId: parseInt(venueId), showDate: new Date(showDate)
   }).returning();
-  
   res.status(201).json({ event, show });
 });
 
-
-// Mock support endpoint
-router.post("/support", async (req, res) => {
-  res.status(201).json({ success: true, message: "Support ticket created" });
+router.delete("/organiser/events/:id", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin" && req.user?.role !== "organiser") return res.status(403).json({ error: "Unauthorized" });
+  // In a real app we'd verify organiser owns the event or is admin
+  const eventId = parseInt(req.params.id);
+  // delete shows first (cascade manual)
+  await db.delete(showsTable).where(eq(showsTable.eventId, eventId));
+  await db.delete(eventsTable).where(eq(eventsTable.id, eventId));
+  res.json({ success: true });
 });
+
+// Support Tickets
+router.get("/support", requireAuth, async (req: AuthRequest, res) => {
+  const role = req.user!.role;
+  let tickets;
+  if (role === 'admin') {
+    tickets = await db.select({
+      ticket: supportTicketsTable,
+      user: usersTable
+    }).from(supportTicketsTable).innerJoin(usersTable, eq(supportTicketsTable.userId, usersTable.id));
+  } else if (role === 'organiser') {
+    tickets = await db.select({
+      ticket: supportTicketsTable,
+      user: usersTable
+    }).from(supportTicketsTable).innerJoin(usersTable, eq(supportTicketsTable.userId, usersTable.id))
+      .where(or(eq(supportTicketsTable.assignedTo, req.user!.id), eq(supportTicketsTable.status, 'Open')));
+  } else {
+    tickets = await db.select({
+      ticket: supportTicketsTable,
+      user: usersTable
+    }).from(supportTicketsTable).innerJoin(usersTable, eq(supportTicketsTable.userId, usersTable.id))
+      .where(eq(supportTicketsTable.userId, req.user!.id));
+  }
+  
+  res.json(tickets.map(t => ({
+    id: t.ticket.id,
+    name: t.user.name,
+    email: t.user.email,
+    subject: t.ticket.subject,
+    message: t.ticket.message,
+    status: t.ticket.status,
+    reply: t.ticket.reply,
+    assignedTo: t.ticket.assignedTo,
+    createdAt: t.ticket.createdAt
+  })));
+});
+
+router.post("/support", requireAuth, async (req: AuthRequest, res) => {
+  const { subject, message, event } = req.body;
+  const [ticket] = await db.insert(supportTicketsTable).values({
+    userId: req.user!.id,
+    name: req.user!.name,
+    email: req.user!.email,
+    subject: subject || "General",
+    event: event || "N/A",
+    message,
+    status: "Open"
+  }).returning();
+  res.status(201).json(ticket);
+});
+
+router.put("/support/:id", requireAuth, async (req: AuthRequest, res) => {
+  if (req.user?.role !== "admin" && req.user?.role !== "organiser") return res.status(403).json({ error: "Unauthorized" });
+  const { reply, status, assignedTo } = req.body;
+  const updateData: any = {};
+  if (reply !== undefined) updateData.reply = reply;
+  if (status !== undefined) updateData.status = status;
+  if (assignedTo !== undefined) updateData.assignedTo = parseInt(assignedTo);
+  
+  const [ticket] = await db.update(supportTicketsTable)
+    .set(updateData)
+    .where(eq(supportTicketsTable.id, parseInt(req.params.id)))
+    .returning();
+  res.json(ticket);
+});
+
+export default router;

@@ -1,25 +1,26 @@
 {
-    "name": "workspace",
-    "version": "0.0.0",
-    "license": "MIT",
-    "scripts": {
-        "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-        "build": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/paradox-ticket run build && cp -r artifacts/paradox-ticket/dist public",
-        "typecheck:libs": "tsc --build",
-        "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
-    },
-    "private": true,
-    "devDependencies": {
-        "@types/nodemailer": "^6.4.24",
-        "prettier": "^3.9.6",
-        "typescript": "~5.9.3"
-    },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "esbuild"
-        ]
-    },
-    "dependencies": {
-        "nodemailer": "^6.10.1"
-    }
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "build": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/paradox-ticket run build && cp -r artifacts/paradox-ticket/dist public",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.24",
+    "prettier": "^3.9.6",
+    "tsx": "catalog:",
+    "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "nodemailer": "^6.10.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
 }

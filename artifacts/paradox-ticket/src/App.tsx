@@ -1,3 +1,4 @@
+import { Studio } from './Studio';
 import { useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Link, Route, Router, Switch, useLocation, useParams } from 'wouter';
@@ -116,22 +117,36 @@ function Bookings() { const { data, isLoading } = useListBookings({ query: { que
   }} className="grid h-10 w-10 place-items-center border border-foreground/15 text-foreground/45 hover:text-accent" data-testid={`button-cancel-${b.id}`}><X size={15} /></button></div></div></article>)}</div> : <Empty title="Your ticket wallet is quiet." copy="The next good night is waiting in the programme." />}</section>{qrPopup && <Dialog open={!!qrPopup} onOpenChange={() => setQrPopup(null)}><DialogContent className="sm:max-w-sm rounded-xl text-center flex flex-col items-center p-8"><DialogTitle className="display-font text-3xl">{qrPopup.eventTitle}</DialogTitle><p className="text-xs text-foreground/55 mt-2">{qrPopup.venue} &bull; {qrPopup.date} &bull; {qrPopup.time}</p><p className="text-xs text-foreground/55 mt-1">Seats: {qrPopup.seats.join(', ')}</p><img src={qrPopup.qr} alt="QR" className="w-48 h-48 mx-auto mt-6 border border-foreground/10 p-2 rounded-lg" /><p className="text-[10px] text-foreground/45 mt-4">Show this QR at the door</p></DialogContent></Dialog>}</Shell>; }
 function Offer() { const { token = 'midnight' } = useParams<{ token: string }>(); const join = useJoinWaitlist(); const [email, setEmail] = useState(''); const [done, setDone] = useState(false); if (done) return <Shell><section className="mx-auto max-w-2xl px-5 py-28 text-center"><span className="mono-label text-[10px] text-accent">Seat claimed</span><h1 className="display-font mt-5 text-8xl leading-[.8]">It found<br /><i>you.</i></h1><p className="mt-7 text-sm text-foreground/60">Your spot is confirmed. Check your inbox for the next step.</p></section></Shell>; return <Shell><section className="mx-auto grid max-w-[1180px] gap-14 px-5 py-20 md:grid-cols-2 md:items-center md:px-10 md:py-32"><div><span className="mono-label text-[10px] text-accent">A seat has opened / {token}</span><h1 className="display-font mt-5 text-8xl leading-[.78]">This is<br /><i>your cue.</i></h1><p className="mt-8 max-w-sm text-sm leading-7 text-foreground/60">A seat for this event is available. You have 08:00 to claim it.</p></div><form onSubmit={e => { e.preventDefault(); join.mutate({ data: { eventId: token, category: 'General', email } }, { onError: () => setDone(true), onSuccess: () => setDone(true) }); }} className="border border-foreground/15 bg-card p-8"><Ticket size={24} className="text-accent" /><h2 className="display-font mt-6 text-4xl">Take the seat.</h2><input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="mt-8 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none focus:border-accent" data-testid="input-offer-email" /><button className="mt-8 flex w-full items-center justify-center gap-2 bg-accent px-5 py-4 text-sm font-semibold text-accent-foreground" data-testid="button-claim-offer">Claim this seat <ArrowRight size={16} /></button></form></section></Shell>; }
 
-function Support() {
-  const send = useCreateSupportRequest();
-  const [done, setDone] = useState(false);
-  const { user } = useAuth();
-  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', message: '', event: 'General Issue' });
-  const { data: events } = useListEvents(undefined, { query: { queryKey: getListEventsQueryKey(undefined) } });
 
-  const submit = (e: React.FormEvent) => {
+function Support() {
+  const [done, setDone] = useState(false);
+  const { user, token } = useAuth();
+  const [form, setForm] = useState({ subject: '', message: '', event: 'General Issue' });
+  const { data: events } = useListEvents(undefined, { query: { queryKey: getListEventsQueryKey(undefined) } });
+  const [tickets, setTickets] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (token) {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      fetch(`${baseUrl}/api/support`, { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(res => res.json())
+        .then(data => setTickets(data))
+        .catch(console.error);
+    }
+  }, [token, done]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newTicket = { id: Date.now().toString(), ...form, status: 'Open', date: new Date().toLocaleDateString() };
+    const baseUrl = import.meta.env.VITE_API_URL || '';
     try {
-      const existing = JSON.parse(localStorage.getItem('paradox-support-tickets') || '[]');
-      localStorage.setItem('paradox-support-tickets', JSON.stringify([newTicket, ...existing]));
+      await fetch(`${baseUrl}/api/support`, { 
+        method: 'POST', 
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      setDone(true);
+      setForm({...form, message: '', subject: ''});
     } catch {}
-    
-    send.mutate({ data: form }, { onSuccess: () => setDone(true), onError: () => setDone(true) });
   };
 
   return (
@@ -141,208 +156,47 @@ function Support() {
           <span className="mono-label text-[10px] text-accent">The human desk</span>
           <h1 className="display-font mt-5 text-8xl leading-[.76]">Need a<br /><i>hand?</i></h1>
           <p className="mt-8 max-w-sm text-sm leading-7 text-foreground/60">For ticket questions, accessibility requests, or a very specific question about the room.</p>
-          <p className="mt-8 flex gap-3 text-sm"><Headphones size={16} /> Usually replies within one curtain call</p>
-        </div>
-        {done ? (
-          <div className="border border-accent/30 bg-accent/10 p-10">
-            <Check className="text-accent" />
-            <h2 className="display-font mt-6 text-5xl">Message received.</h2>
-            <p className="mt-4 text-sm text-foreground/60">We will be in touch soon.</p>
-          </div>
-        ) : (
-          <form onSubmit={submit} className="border border-foreground/15 bg-card p-8">
-            <span className="mono-label text-[10px] text-foreground/45">Send a note</span>
-            <label className="mt-7 block text-xs text-foreground/55">
-              Related Event
-              <select required value={form.event} onChange={e => setForm({ ...form, event: e.target.value })} className="mt-2 w-full border-b border-foreground/20 bg-card py-3 text-sm outline-none focus:border-accent">
-                <option value="General Issue">General Issue</option>
-                {((events as any[]) || []).map(ev => <option key={ev.id} value={ev.title}>{ev.title}</option>)}
-              </select>
-            </label>
-            <input required type="text" placeholder="Your name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="mt-7 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none focus:border-accent" data-testid="input-support-name" />
-            <input required type="email" placeholder="you@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="mt-7 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none focus:border-accent" data-testid="input-support-email" />
-            <textarea required rows={5} placeholder="How can we help?" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="mt-7 w-full resize-none border-b border-foreground/20 bg-transparent py-3 text-sm outline-none focus:border-accent" data-testid="textarea-support" />
-            <button type="submit" className="mt-8 flex items-center gap-2 bg-primary px-6 py-4 text-sm font-semibold text-primary-foreground hover:bg-accent" data-testid="button-send-support">Send message <ArrowRight size={16} /></button>
-          </form>
-        )}
-      </section>
-    </Shell>
-  );
-}
-
-function About() { return <Shell><section className="bg-primary text-primary-foreground"><div className="mx-auto max-w-[1440px] px-5 py-28 md:px-10 md:py-40"><span className="mono-label text-[10px] text-accent">About Paradox Ticket</span><h1 className="display-font mt-6 max-w-5xl text-8xl leading-[.75] md:text-[11rem]">A ticket can<br /><i>change the night.</i></h1><p className="mt-12 max-w-lg text-lg leading-8 text-primary-foreground/65">Paradox is a small, stubbornly human ticketing platform for cinema, music, and the beautiful in-between.</p></div></section><section className="mx-auto grid max-w-[1180px] gap-12 px-5 py-24 md:grid-cols-2 md:px-10"><h2 className="display-font text-6xl leading-[.85]">Less queue.<br />More ceremony.</h2><div className="space-y-5 text-sm leading-7 text-foreground/65"><p>Some nights begin hours before the lights go down. You picture the room and wonder which seat has the best view.</p><p>Paradox keeps that feeling intact: clear times, honest availability, and no mystery fees at the final step.</p></div></section></Shell>; }
-
-function OrganiserMetrics() {
-  const [stats, setStats] = useState({ grossRevenue: 0, ticketsMoved: 0, sellThrough: '0%', avgTicket: 0 });
-  const { token } = useAuth();
-  
-  useEffect(() => {
-    const fetchStats = async () => {
-      const res = await fetch(import.meta.env.VITE_API_URL + '/api/organiser/stats', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        setStats(await res.json());
-      }
-    };
-    fetchStats();
-  }, []);
-
-  return (
-    <>
-      <div className="mt-8 grid gap-px border border-foreground/15 bg-foreground/15 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ['Gross revenue', `?${stats.grossRevenue.toLocaleString('en-IN')}`],
-          ['Tickets moved', stats.ticketsMoved.toString()],
-          ['Sell-through', stats.sellThrough],
-          ['Avg. ticket', `?${stats.avgTicket.toLocaleString('en-IN')}`]
-        ].map(([l, v]) => (
-          <div key={l} className="bg-card p-6">
-            <span className="mono-label text-[9px] text-foreground/45">{l}</span>
-            <p className="mt-5 text-3xl font-semibold">{v}</p>
-            <span className="mt-2 block text-xs text-accent">+12.4% from last month</span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-10 border border-foreground/15 bg-card p-8">
-        <span className="mono-label text-[10px] text-foreground/45">Tonight's room</span>
-        <h2 className="display-font mt-4 text-5xl">Arijit Singh Live</h2>
-        <p className="mt-5 text-sm text-foreground/55">Real-time metrics are synced.</p>
-      </div>
-    </>
-  );
-}
-
-function Studio({ admin = false }: { admin?: boolean }) {
-  const [tab, setTab] = useState(admin ? 'Venues' : 'Overview');
-  const { user } = useAuth();
-  
-  // Chatbot FAQs Management
-  const [faqs, setFaqs] = useState<any[]>([]);
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('paradox-faqs');
-      if (stored) setFaqs(JSON.parse(stored));
-      else {
-        const initial = [
-          { q: 'How to cancel?', a: "You can cancel your ticket from the 'My tickets' page up to 24 hours before showtime.", link: { url: '/bookings', label: 'View My Tickets' } },
-          { q: 'Where is my QR code?', a: "Your QR code is securely stored in your ticket wallet and also sent via email.", link: { url: '/bookings', label: 'View My Tickets' } },
-          { q: 'Waitlist policy?', a: "Waitlist offers are valid for 10 minutes once a seat opens up." },
-          { q: 'Refund policy?', a: "Full refunds are provided for cancellations made up to 24 hours before the event." },
-          { q: 'I need human help', a: "I can route you to our support desk. They usually reply within one curtain call.", link: { url: '/support', label: 'Raise a ticket' } }
-        ];
-        setFaqs(initial);
-        localStorage.setItem('paradox-faqs', JSON.stringify(initial));
-      }
-    } catch {}
-  }, []);
-
-  const [newFaq, setNewFaq] = useState({ q: '', a: '' });
-  const addFaq = () => {
-    if (!newFaq.q || !newFaq.a) return;
-    const updated = [...faqs, newFaq];
-    setFaqs(updated);
-    localStorage.setItem('paradox-faqs', JSON.stringify(updated));
-    setNewFaq({ q: '', a: '' });
-  };
-  const deleteFaq = (idx: number) => {
-    const updated = faqs.filter((_, i) => i !== idx);
-    setFaqs(updated);
-    localStorage.setItem('paradox-faqs', JSON.stringify(updated));
-  };
-
-  // Support Tickets Management
-  const [tickets, setTickets] = useState<any[]>([]);
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('paradox-support-tickets') || '[]');
-      setTickets(admin ? stored : stored.filter((t: any) => t.event !== 'General Issue'));
-    } catch {}
-  }, [admin]);
-
-  return (
-    <Shell>
-      <section className="mx-auto max-w-[1180px] px-5 py-16 md:px-10 md:py-24">
-        <span className="mono-label text-[10px] text-accent">{admin ? 'Back office / Paradox' : 'Organiser studio / June 2025'}</span>
-        <h1 className="display-font mt-4 text-8xl leading-[.8]">{admin ? <>Keep the<br /><i>house ready.</i></> : <>Good nights<br /><i>add up.</i></>}</h1>
-        
-        {admin ? (
-          <div className="mt-14 flex flex-wrap gap-6 border-b border-foreground/15">
-            {['Venues', 'Support tickets', 'Chatbot Settings'].map(t => (
-              <button key={t} onClick={() => setTab(t)} className={`pb-4 text-sm ${tab === t ? 'border-b-2 border-accent text-accent' : 'text-foreground/50'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-14 flex gap-6 border-b border-foreground/15">
-            {['Overview', 'Support tickets'].map(t => (
-              <button key={t} onClick={() => setTab(t)} className={`pb-4 text-sm ${tab === t ? 'border-b-2 border-accent text-accent' : 'text-foreground/50'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {tab === 'Overview' && !admin && <OrganiserMetrics />}
-
-        {tab === 'Venues' && admin && (
-          <div className="mt-8 border border-foreground/15 bg-card p-7">
-            <h2 className="display-font text-4xl">The Rivington</h2>
-            <p className="mt-3 text-sm text-foreground/55">120 seats &middot; New York</p>
-            <button className="mt-8 border border-foreground/20 px-4 py-3 text-xs font-semibold">Edit venue</button>
-          </div>
-        )}
-
-        {tab === 'Chatbot Settings' && admin && (
-          <div className="mt-8 border border-foreground/15 bg-card p-7 space-y-6">
-            <h2 className="display-font text-4xl">Dot FAQs Manager</h2>
+          
+          <div className="mt-12">
+            <h2 className="display-font text-4xl mb-4">Your Tickets</h2>
             <div className="space-y-4">
-              {faqs.map((f, i) => (
-                <div key={i} className="flex justify-between items-start border-b border-foreground/10 pb-4">
-                  <div>
-                    <p className="font-semibold text-sm">Q: {f.q}</p>
-                    <p className="text-sm text-foreground/55 mt-1">A: {f.a}</p>
+              {tickets.length === 0 ? <p className="text-sm text-foreground/50">No past tickets.</p> : tickets.map((t) => (
+                <div key={t.id} className="border border-foreground/15 p-4 rounded bg-card">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="font-bold text-sm">{t.subject} <span className="ml-2 px-1.5 py-0.5 bg-accent/20 text-accent text-[10px] uppercase">{t.status}</span></p>
                   </div>
-                  <button onClick={() => deleteFaq(i)} className="text-red-500 hover:text-red-400 text-xs px-3 py-1 border border-red-500/20 rounded">Delete</button>
+                  <p className="text-xs text-foreground/70 mb-3">{t.message}</p>
+                  {t.reply && (
+                    <div className="bg-secondary p-3 text-xs rounded border-l-2 border-accent">
+                      <p className="font-bold mb-1">Reply:</p>
+                      <p>{t.reply}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-            <div className="pt-4 border-t border-foreground/10 space-y-4">
-              <h3 className="font-semibold text-sm">Add New FAQ</h3>
-              <input placeholder="Question" value={newFaq.q} onChange={e => setNewFaq({ ...newFaq, q: e.target.value })} className="w-full bg-transparent border-b border-foreground/20 py-2 outline-none text-sm" />
-              <input placeholder="Answer" value={newFaq.a} onChange={e => setNewFaq({ ...newFaq, a: e.target.value })} className="w-full bg-transparent border-b border-foreground/20 py-2 outline-none text-sm" />
-              <button onClick={addFaq} className="bg-primary text-primary-foreground px-4 py-2 text-xs font-semibold hover:bg-accent">Add to Chatbot</button>
-            </div>
           </div>
-        )}
-
-        {tab === 'Support tickets' && (
-          <div className="mt-8 border border-foreground/15 bg-card p-7 space-y-6">
-            <h2 className="display-font text-4xl">Open Issues</h2>
-            {tickets.length === 0 ? (
-              <p className="text-sm text-foreground/55">No support tickets currently.</p>
-            ) : (
-              <div className="space-y-4">
-                {tickets.map((t: any) => (
-                  <div key={t.id} className="border border-foreground/10 p-4">
-                    <div className="flex justify-between">
-                      <span className="mono-label text-[10px] text-accent">{t.status} &middot; {t.date}</span>
-                      <span className="text-xs font-semibold text-accent">{t.event}</span>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold">{t.name} ({t.email})</p>
-                    <p className="mt-1 text-sm text-foreground/55">{t.message}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        </div>
+        <div>
+          {done && <div className="mb-8 border border-accent/30 bg-accent/10 p-5 flex items-center justify-between"><span className="text-sm">Message received. We'll reply soon.</span><button onClick={() => setDone(false)} className="text-xs border px-3 py-1">New Message</button></div>}
+          {!done && (
+            <form onSubmit={submit} className="border border-foreground/15 bg-card p-8">
+              <h2 className="display-font text-3xl mb-6">Open a ticket</h2>
+              <select required value={form.event} onChange={e => setForm({ ...form, event: e.target.value })} className="w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none mb-6">
+                <option value="General Issue">General Issue</option>
+                {(events || []).map((e: any) => <option key={e.id} value={e.title}>{e.title}</option>)}
+              </select>
+              <input required placeholder="Subject" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} className="w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none mb-6" />
+              <textarea required placeholder="How can we help?" value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none min-h-[120px] mb-6" />
+              <button type="submit" className="w-full bg-primary py-4 text-sm font-semibold text-primary-foreground">Send to desk</button>
+            </form>
+          )}
+        </div>
       </section>
     </Shell>
   );
 }
-
+function About() { return <Shell><section className="bg-primary text-primary-foreground"><div className="mx-auto max-w-[1440px] px-5 py-28 md:px-10 md:py-40"><span className="mono-label text-[10px] text-accent">About Paradox Ticket</span><h1 className="display-font mt-6 max-w-5xl text-8xl leading-[.75] md:text-[11rem]">A ticket can<br /><i>change the night.</i></h1><p className="mt-12 max-w-lg text-lg leading-8 text-primary-foreground/65">Paradox is a small, stubbornly human ticketing platform for cinema, music, and the beautiful in-between.</p></div></section><section className="mx-auto grid max-w-[1180px] gap-12 px-5 py-24 md:grid-cols-2 md:px-10"><h2 className="display-font text-6xl leading-[.85]">Less queue.<br />More ceremony.</h2><div className="space-y-5 text-sm leading-7 text-foreground/65"><p>Some nights begin hours before the lights go down. You picture the room and wonder which seat has the best view.</p><p>Paradox keeps that feeling intact: clear times, honest availability, and no mystery fees at the final step.</p></div></section></Shell>; }
 function Auth() { const [register, setRegister] = useState(false); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [name, setName] = useState(''); const [, setLocation] = useLocation(); const { login } = useAuth(); const submit = async (e: React.FormEvent) => { e.preventDefault(); const baseUrl = import.meta.env.VITE_API_URL || ''; const endpoint = register ? baseUrl + '/api/auth/register' : baseUrl + '/api/auth/login'; const body = register ? { email, password, name } : { email, password }; try { const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!res.ok) throw new Error((await res.json()).error || 'Auth failed'); const data = await res.json(); login(data.user, data.token); setLocation('/'); } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }); } }; return <Shell><section className="mx-auto grid max-w-[1100px] gap-12 px-5 py-20 md:grid-cols-2 md:items-center md:px-10 md:py-32"><div><span className="mono-label text-[10px] text-accent">Your place in the room</span><h1 className="display-font mt-5 text-8xl leading-[.76]">Come<br /><i>on in.</i></h1><p className="mt-8 max-w-xs text-sm leading-6 text-foreground/60">Save tickets, hold favourite seats, and get the good news first.</p></div><form onSubmit={submit} className="border border-foreground/15 bg-card p-8"><div className="flex gap-6 border-b border-foreground/15"><button type="button" onClick={() => setRegister(false)} className={`pb-4 text-sm ${!register ? 'border-b-2 border-accent text-accent' : ''}`} data-testid="button-sign-in">Sign in</button><button type="button" onClick={() => setRegister(true)} className={`pb-4 text-sm ${register ? 'border-b-2 border-accent text-accent' : ''}`} data-testid="button-register">Create account</button></div>{register && <input required type="text" placeholder="Your Name" value={name} onChange={e => setName(e.target.value)} className="mt-8 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none" data-testid="input-auth-name" />}<input required type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} className="mt-6 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none" data-testid="input-auth-email" /><input required type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="mt-6 w-full border-b border-foreground/20 bg-transparent py-3 text-sm outline-none" data-testid="input-auth-password" /><button type="submit" className="mt-8 flex w-full justify-center gap-2 bg-primary px-5 py-4 text-sm font-semibold text-primary-foreground" data-testid="button-auth-submit">{register ? 'Create account' : 'Sign in'} <ArrowRight size={16} /></button></form></section></Shell>; }
 function Empty({ title, copy }: { title: string; copy: string }) { return <div className="border border-dashed border-foreground/20 px-6 py-20 text-center" data-testid="state-empty"><Sparkles className="mx-auto text-accent" /><h2 className="display-font mt-6 text-5xl">{title}</h2><p className="mt-4 text-sm text-foreground/55">{copy}</p><Link href="/events" className="mt-7 inline-flex items-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground" data-testid="link-empty-events">Explore events <ArrowRight size={15} /></Link></div>; }
 function NotFoundPage() { return <Shell><section className="mx-auto max-w-3xl px-5 py-28 text-center md:py-40"><span className="mono-label text-[10px] text-accent">Intermission / 404</span><h1 className="display-font mt-5 text-[9rem] leading-[.75] tracking-[-.08em]">Wrong<br /><i>reel.</i></h1><p className="mx-auto mt-8 max-w-sm text-sm leading-6 text-foreground/60">That page has left the programme. The next good night is still on.</p><Link href="/events" className="mt-9 inline-flex items-center gap-2 bg-primary px-6 py-4 text-sm font-semibold text-primary-foreground" data-testid="link-not-found-events">Find an event <ArrowRight size={16} /></Link></section></Shell>; }

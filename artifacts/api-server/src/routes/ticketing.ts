@@ -6,6 +6,7 @@ import { eventsTable, showsTable, venuesTable, showSeatsTable, seatLayoutsTable,
 import { eq, and, or, lt, sql, inArray } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middlewares/auth.js";
 import { CreateBookingBody, CreateSeatHoldBody, JoinWaitlistBody } from "@workspace/api-zod";
+import { sendEmail } from "../mailer.js";
 
 const router: IRouter = Router();
 
@@ -169,6 +170,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const validSeats = heldSeats.filter(s => s.heldUntil && s.heldUntil > now);
   if (validSeats.length === 0) {
     res.status(410).json({ error: "Your seat hold expired. Please choose seats again." });
+    return;
   }
 
   const reference = `PX${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -197,7 +199,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   // Generate QR
   const qrUrl = makeQr(reference);
 
-  const { sendEmail } = await import("../mailer");
+  
   await sendEmail(
     req.user!.email,
     "Your Paradox Ticket is Confirmed",

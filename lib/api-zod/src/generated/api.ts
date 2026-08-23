@@ -102,7 +102,8 @@ export const CreateSeatHoldParams = zod.object({
 })
 
 export const CreateSeatHoldBody = zod.object({
-  "seatIds": zod.array(zod.string())
+  "seatIds": zod.array(zod.string()),
+  "total": zod.number().optional()
 })
 
 export const CreateSeatHoldResponse = zod.object({
@@ -138,6 +139,11 @@ export const CreateBookingBody = zod.object({
   "holdId": zod.string(),
   "email": zod.string(),
   "paymentMethod": zod.string(),
+  "total": zod.number().optional(),
+  "eventTitle": zod.string().optional(),
+  "venue": zod.string().optional(),
+  "date": zod.string().optional(),
+  "time": zod.string().optional(),
   "foodItems": zod.array(zod.string()).optional()
 })
 

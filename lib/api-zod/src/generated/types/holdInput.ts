@@ -9,4 +9,5 @@
 
 export interface HoldInput {
   seatIds: string[];
+  total?: number;
 }

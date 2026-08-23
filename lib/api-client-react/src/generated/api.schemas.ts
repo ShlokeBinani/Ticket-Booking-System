@@ -49,6 +49,7 @@ export interface Seat {
 
 export interface HoldInput {
   seatIds: string[];
+  total?: number;
 }
 
 export interface Hold {
@@ -63,6 +64,11 @@ export interface BookingInput {
   email: string;
   paymentMethod: string;
   foodItems?: string[];
+  total?: number;
+  eventTitle?: string;
+  venue?: string;
+  date?: string;
+  time?: string;
 }
 
 export interface Booking {

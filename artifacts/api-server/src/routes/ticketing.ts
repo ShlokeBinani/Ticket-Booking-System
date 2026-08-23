@@ -147,7 +147,7 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
     // In a real app we'd save a "hold record", but here the `show_seats` implicitly tracks it
     // We return a pseudo-holdId
     const holdId = req.user?.id + "-" + Date.now();
-    res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt ? holdResult.expiresAt.getTime() : (Date.now() + 10 * 60 * 1000), total: seatIds.length * 500 });
+    res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt ? holdResult.expiresAt.getTime() : (Date.now() + 10 * 60 * 1000), total: body.total || seatIds.length * 500 });
   } catch (err) {
     res.status(500).json({ error: "Failed to hold seats" });
   }
@@ -181,7 +181,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       userId: req.user!.id,
       showId: validSeats[0].showId,
       bookingReference: reference,
-      totalAmount: validSeats.length * 500 + (body.foodItems?.length ?? 0) * 240,
+      totalAmount: body.total || (validSeats.length * 500 + (body.foodItems?.length ?? 0) * 240),
       status: body.paymentMethod === "venue" ? "Pay at venue" : "Confirmed"
     }).returning();
 
@@ -200,7 +200,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const qrUrl = makeQr(reference);
 
   
-  await sendEmail(
+  sendEmail(
     req.user!.email,
     "Your Paradox Ticket is Confirmed",
     `<p>Thank you for your booking.</p><p>Your unique QR Ticket Code: <strong>${qrUrl}</strong></p><img src="${qrUrl}" alt="Ticket QR" />`
@@ -214,7 +214,7 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
     date: "24 Aug",
     time: "7:30 PM",
     seats: validSeats.map(s => s.id.toString()),
-    total: validSeats.length * 500,
+    total: body.total || (validSeats.length * 500),
     status: "Confirmed",
     qr: qrUrl
   });

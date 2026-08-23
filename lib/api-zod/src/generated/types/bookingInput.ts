@@ -12,4 +12,9 @@ export interface BookingInput {
   email: string;
   paymentMethod: string;
   foodItems?: string[];
+  total?: number;
+  eventTitle?: string;
+  venue?: string;
+  date?: string;
+  time?: string;
 }

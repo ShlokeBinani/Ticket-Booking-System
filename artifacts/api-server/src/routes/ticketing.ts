@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 import { Router, type IRouter, type Request } from "express";
 import { db } from "@workspace/db";
 import { eventsTable, showsTable, venuesTable, showSeatsTable, seatLayoutsTable, bookingsTable, bookingSeatsTable, waitlistTable, seatCategoriesTable, showPricingTable } from "@workspace/db/schema";
-import { eq, and, or, lt, sql, inArray } from "drizzle-orm";
+import { eq, and, or, lt, sql, inArray, desc } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middlewares/auth.js";
 import { CreateBookingBody, CreateSeatHoldBody, JoinWaitlistBody } from "@workspace/api-zod";
 import { sendEmail } from "../mailer.js";
@@ -153,6 +153,42 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
+
+router.get("/bookings", requireAuth, async (req: AuthRequest, res) => {
+  const userBookings = await db.select().from(bookingsTable).where(eq(bookingsTable.userId, req.user!.id)).orderBy(desc(bookingsTable.createdAt));
+  
+  const response = [];
+  for (const b of userBookings) {
+    // Get seats
+    const seatRels = await db.select().from(bookingSeatsTable).where(eq(bookingSeatsTable.bookingId, b.id));
+    const seatIds = seatRels.map(r => r.showSeatId.toString());
+    
+    // Get show and event for details
+    const showInfo = await db.select().from(showsTable).where(eq(showsTable.id, b.showId));
+    if (!showInfo.length) continue;
+    const show = showInfo[0];
+    
+    const eventInfo = await db.select().from(eventsTable).where(eq(eventsTable.id, show.eventId));
+    if (!eventInfo.length) continue;
+    const event = eventInfo[0];
+    
+    response.push({
+      id: b.id.toString(),
+      reference: b.bookingReference,
+      eventTitle: event.title,
+      venue: event.venue,
+      date: show.date,
+      time: show.time,
+      seats: seatIds,
+      total: b.totalAmount,
+      status: b.status,
+      qr: makeQr(b.bookingReference)
+    });
+  }
+  
+  res.json(response);
+});
+
 router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const body = CreateBookingBody.parse(req.body);
   
@@ -209,10 +245,10 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   res.status(201).json({
     id: `b-${Date.now()}`,
     reference,
-    eventTitle: "Indian Movie",
-    venue: "Mumbai Cinema",
-    date: "24 Aug",
-    time: "7:30 PM",
+    eventTitle: body.eventTitle || "Paradox Event",
+    venue: body.venue || "Paradox Venue",
+    date: body.date || "Unknown Date",
+    time: body.time || "Unknown Time",
     seats: validSeats.map(s => s.id.toString()),
     total: body.total || (validSeats.length * 500),
     status: "Confirmed",

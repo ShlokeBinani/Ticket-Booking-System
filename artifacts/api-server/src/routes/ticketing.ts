@@ -82,6 +82,7 @@ router.get("/shows/:id/seats", async (req, res) => {
   const now = new Date();
 
   res.json(seats.map(s => {
+    s.id = String(s.id);
     let currentStatus = s.status;
     if (s.status === "held" && s.heldUntil && s.heldUntil < now) {
       currentStatus = "available"; // Implicitly released

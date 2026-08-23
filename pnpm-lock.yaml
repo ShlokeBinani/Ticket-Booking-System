@@ -147,7 +147,14 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      nodemailer:
+        specifier: ^6.10.1
+        version: 6.10.1
     devDependencies:
+      '@types/nodemailer':
+        specifier: ^6.4.24
+        version: 6.4.24
       prettier:
         specifier: ^3.9.6
         version: 3.9.6

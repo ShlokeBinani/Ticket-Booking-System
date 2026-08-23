@@ -1,31 +1,24 @@
 // @ts-nocheck
-export async function sendEmail(to: string, subject: string, html: string) {
-  const apiKey = process.env.EMAIL_API_KEY;
-  if (!apiKey || apiKey === "re_your_api_key_here") {
-    console.log(`[Mock Email] To: ${to} | Subject: ${subject}`);
-    return;
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "planetarymotive@gmail.com",
+    pass: "eanm eexf zpsu qhck"
   }
-  
+});
+
+export async function sendEmail(to: string, subject: string, html: string) {
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "Paradox Ticket <tickets@paradoxticket.com>",
-        to: [to],
-        subject,
-        html
-      })
+    const info = await transporter.sendMail({
+      from: '"Paradox Ticket" <planetarymotive@gmail.com>',
+      to,
+      subject,
+      html
     });
-    if (!res.ok) {
-      console.error("[Email Error]", await res.text());
-    } else {
-      console.log(`[Email Sent] To: ${to}`);
-    }
+    console.log(`[Nodemailer] Email Sent! Message ID: ${info.messageId}`);
   } catch (err) {
-    console.error("[Email Exception]", err);
+    console.error("[Nodemailer Error]", err);
   }
 }

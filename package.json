@@ -10,6 +10,7 @@
     },
     "private": true,
     "devDependencies": {
+        "@types/nodemailer": "^6.4.24",
         "prettier": "^3.9.6",
         "typescript": "~5.9.3"
     },
@@ -17,5 +18,8 @@
         "onlyBuiltDependencies": [
             "esbuild"
         ]
+    },
+    "dependencies": {
+        "nodemailer": "^6.10.1"
     }
 }

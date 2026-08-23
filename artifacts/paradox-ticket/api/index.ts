@@ -1,3 +1,3 @@
 // @ts-nocheck
-import app from '../../api-server/src/app.js';
+import app from '../../api-server/dist/app.mjs';
 export default app;

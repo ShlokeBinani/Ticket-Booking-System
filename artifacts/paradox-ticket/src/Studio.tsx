@@ -79,12 +79,12 @@ export function Studio({ admin = false }: { admin?: boolean }) {
 
   return (
     <div className="mx-auto max-w-[1180px] px-5 py-16 md:px-10 md:py-24 text-primary-foreground bg-primary min-h-screen">
-      <span className="mono-label text-[10px] text-accent">{admin ? 'Back office / Paradox' : 'Organiser studio'}</span>
-      <h1 className="display-font mt-4 text-8xl leading-[.8]">{admin ? 'Control Panel' : 'Dashboard'}</h1>
+      <div className="flex justify-between items-center mb-8"> <span className="mono-label text-[10px] text-accent">{admin ? 'Back office / Paradox' : 'Organiser studio'}</span> <button onClick={() => window.location.href = '/'} className="text-sm border border-primary-foreground/20 px-4 py-2 rounded hover:bg-primary-foreground/10 transition-colors">&larr; Exit Studio</button> </div>
+      <h1 className="display-font text-8xl leading-[.8]">{admin ? 'Control Panel' : 'Dashboard'}</h1>
       
       <div className="mt-14 flex flex-wrap gap-6 border-b border-foreground/15 mb-8">
         {(admin ? ['Users', 'Venues', 'Events', 'Support tickets'] : ['Overview', 'Events', 'Support tickets']).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`pb-4 text-sm ${tab === t ? 'border-b-2 border-accent text-accent' : 'text-primary-foreground/50'}`}>
+          <button key={t} onClick={() => setTab(t)} className={`pb-4 text-sm ${tab === t ? 'border-b-2 border-accent text-accent' : 'text-primary-foreground opacity-50'}`}>
             {t}
           </button>
         ))}
@@ -93,11 +93,11 @@ export function Studio({ admin = false }: { admin?: boolean }) {
       {tab === 'Overview' && !admin && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
-            <p className="text-xs text-primary-foreground/50">Gross Revenue</p>
+            <p className="text-xs text-primary-foreground opacity-50">Gross Revenue</p>
             <p className="text-3xl mt-2 font-bold">₹{metrics.grossRevenue}</p>
           </div>
           <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
-            <p className="text-xs text-primary-foreground/50">Tickets Moved</p>
+            <p className="text-xs text-primary-foreground opacity-50">Tickets Moved</p>
             <p className="text-3xl mt-2 font-bold">{metrics.ticketsMoved}</p>
           </div>
         </div>
@@ -187,7 +187,7 @@ export function Studio({ admin = false }: { admin?: boolean }) {
               <div className="flex justify-between border-b border-foreground/10 pb-4 mb-4">
                 <div>
                   <p className="font-bold">{t.subject} <span className="text-xs font-normal bg-accent text-accent-foreground px-2 py-0.5 rounded ml-2">{t.status}</span></p>
-                  <p className="text-xs text-primary-foreground/50 mt-1">From: {t.name} ({t.email}) &middot; Event: {t.event}</p>
+                  <p className="text-xs text-primary-foreground opacity-50 mt-1">From: {t.name} ({t.email}) &middot; Event: {t.event}</p>
                 </div>
                 {admin && (
                   <select value={t.assignedTo || ''} onChange={(e) => updateTicket(t.id, { assignedTo: e.target.value })} className="bg-transparent border border-foreground/20 p-1 text-sm h-8">

@@ -144,7 +144,7 @@ router.post("/shows/:id/holds", requireAuth, async (req: AuthRequest, res) => {
     // In a real app we'd save a "hold record", but here the `show_seats` implicitly tracks it
     // We return a pseudo-holdId
     const holdId = req.user?.id + "-" + Date.now();
-    res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt?.toISOString(), total: seatIds.length * 500 });
+    res.status(201).json({ id: holdId, seatIds: body.seatIds, expiresAt: holdResult.expiresAt ? holdResult.expiresAt.getTime() : (Date.now() + 10 * 60 * 1000), total: seatIds.length * 500 });
   } catch (err) {
     res.status(500).json({ error: "Failed to hold seats" });
   }

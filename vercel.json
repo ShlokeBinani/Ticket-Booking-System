@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/artifacts/paradox-ticket/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/artifacts/paradox-ticket/dist/index.html"
+    }
+  ]
+}

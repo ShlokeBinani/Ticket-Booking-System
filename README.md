@@ -7,7 +7,7 @@ A cinematic booking experience for movies, concerts, and live events. Customers 
 - **Seat Hold & Concurrency**: Seats are held for a TTL of 10 minutes when selected. Other users cannot book them simultaneously.
 - **Waitlist Logic**: Sold out seats? Join the waitlist, and if a ticket is cancelled, the sweeper cron automatically assigns the seat and emails the first person on the waitlist.
 - **QR Codes**: Every booking generates a unique QR code.
-- **Role-based Auth**: Organiser, Admin, Customer roles via JWT Authentication.
+- **Role-based Auth**: Organiser, Admin, Customer roles via JWT Authentication. 
 - **Postgres Database**: Powered by Drizzle ORM.
 
 ## Setup & Running Locally

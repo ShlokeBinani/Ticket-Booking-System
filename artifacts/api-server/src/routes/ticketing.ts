@@ -16,49 +16,38 @@ function makeQr(reference: string) {
 
 // Ensure holds are cleaned implicitly by filtering `heldUntil < NOW()` or explicitly by a sweeper
 
-router.get("/events", async (req, res) => {
-  
-  const eventsList = [
-    { id: '1', title: 'Arijit Singh Live', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Jio World Drive', date: 'Oct 14', time: '19:00', price: 2500, status: 'Selling fast', image: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg', rating: 4.9, description: 'Experience the magic.' },
-    { id: '2', title: 'Diljit Dosanjh: Dil-Luminati', type: 'concert', category: 'Music', city: 'Delhi', venue: 'JLN Stadium', date: 'Nov 02', time: '18:30', price: 3999, status: 'Sold out', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Diljit_Dosanjh.jpg', rating: 4.9, description: 'The biggest tour of the year.' },
-    { id: '3', title: 'Jawan', type: 'movie', category: 'Cinema', city: 'Mumbai', venue: 'PVR IMAX', date: 'Sep 07', time: '20:00', price: 450, status: 'Available', image: 'https://upload.wikimedia.org/wikipedia/en/3/39/Jawan_film_poster.jpg', rating: 4.7, description: 'Blockbuster movie.' },
-    { id: '4', title: 'Kalki 2898 AD', type: 'movie', category: 'Cinema', city: 'Bangalore', venue: 'Inox Megaplex', date: 'Jul 12', time: '17:45', price: 350, status: 'Filling fast', image: 'https://upload.wikimedia.org/wikipedia/en/4/4c/Kalki_2898_AD.jpg', rating: 4.8, description: 'Epic sci-fi.' },
-    { id: '5', title: 'Coldplay: Music of the Spheres', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'DY Patil Stadium', date: 'Jan 18', time: '18:00', price: 4500, status: 'Waitlist', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/ColdplayWembley120925_%28cropped%29.jpg/1280px-ColdplayWembley120925_%28cropped%29.jpg', rating: 5.0, description: 'Global stadium tour.' },
-    { id: '6', title: 'Zakir Khan: Tathastu', type: 'comedy', category: 'Standup', city: 'Pune', venue: 'Balewadi Stadium', date: 'Dec 10', time: '19:30', price: 999, status: 'Selling fast', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Zakir_khan_2.jpg/1280px-Zakir_khan_2.jpg', rating: 4.9, description: 'Laugh out loud.' },
-    { id: '7', title: 'Sunburn Festival', type: 'concert', category: 'Music', city: 'Bangalore', venue: 'KTPO', date: 'Dec 29', time: '15:00', price: 3000, status: 'Available', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Sunburn_Festival%2C_Goa%2C_Trance_music_culture.jpg/1280px-Sunburn_Festival%2C_Goa%2C_Trance_music_culture.jpg', rating: 4.6, description: 'EDM festival.' },
-    { id: '8', title: 'Animal', type: 'movie', category: 'Cinema', city: 'Delhi', venue: 'PVR Director\'s Cut', date: 'Dec 01', time: '21:00', price: 800, status: 'Sold out', image: 'https://upload.wikimedia.org/wikipedia/en/9/90/Animal_%282023_film%29_poster.jpg', rating: 4.5, description: 'Action thriller.' },
-    { id: '9', title: 'Ed Sheeran: Mathematics Tour', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Racecourse', date: 'Mar 16', time: '19:00', price: 5500, status: 'Available', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Ed_Sheeran-6886_%28cropped_2%29.jpg/960px-Ed_Sheeran-6886_%28cropped_2%29.jpg', rating: 4.8, description: 'Live in Mumbai.' },
-    { id: '10', title: 'Anubhav Singh Bassi: Kisi Ko Batana Mat', type: 'comedy', category: 'Standup', city: 'Delhi', venue: 'Siri Fort Aud.', date: 'Oct 22', time: '20:00', price: 1499, status: 'Selling fast', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Anubhav_Singh_Bassi_in_Surat_for_Bas_Kar_Bassi_%28cropped%29.jpg/960px-Anubhav_Singh_Bassi_in_Surat_for_Bas_Kar_Bassi_%28cropped%29.jpg', rating: 4.7, description: 'Standup special.' }
-  ];
-  res.json(eventsList);
+const eventsCatalog = [
+  { id: '1', title: 'Arijit Singh Live', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Jio World Drive', date: 'Oct 14', time: '19:00', price: 2500, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1540039155732-d688126b8b0b?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Experience the magic.' },
+  { id: '2', title: 'Diljit Dosanjh: Dil-Luminati', type: 'concert', category: 'Music', city: 'Delhi', venue: 'JLN Stadium', date: 'Nov 02', time: '18:30', price: 3999, status: 'Sold out', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'The biggest tour of the year.' },
+  { id: '3', title: 'Jawan', type: 'movie', category: 'Cinema', city: 'Mumbai', venue: 'PVR IMAX', date: 'Sep 07', time: '20:00', price: 450, status: 'Available', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Blockbuster movie.' },
+  { id: '4', title: 'Kalki 2898 AD', type: 'movie', category: 'Cinema', city: 'Bangalore', venue: 'Inox Megaplex', date: 'Jul 12', time: '17:45', price: 350, status: 'Filling fast', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Epic sci-fi.' },
+  { id: '5', title: 'Coldplay: Music of the Spheres', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'DY Patil Stadium', date: 'Jan 18', time: '18:00', price: 4500, status: 'Waitlist', image: 'https://images.unsplash.com/photo-1470229722913-7c090be3226a?q=80&w=800&auto=format&fit=crop', rating: 5.0, description: 'Global stadium tour.' },
+  { id: '6', title: 'Zakir Khan: Tathastu', type: 'comedy', category: 'Standup', city: 'Pune', venue: 'Balewadi Stadium', date: 'Dec 10', time: '19:30', price: 999, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Laugh out loud.' },
+  { id: '7', title: 'Sunburn Festival', type: 'concert', category: 'Music', city: 'Bangalore', venue: 'KTPO', date: 'Dec 29', time: '15:00', price: 3000, status: 'Available', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop', rating: 4.6, description: 'EDM festival.' },
+  { id: '8', title: 'Animal', type: 'movie', category: 'Cinema', city: 'Delhi', venue: 'PVR Director\'s Cut', date: 'Dec 01', time: '21:00', price: 800, status: 'Sold out', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', rating: 4.5, description: 'Action thriller.' },
+  { id: '9', title: 'Ed Sheeran: Mathematics Tour', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Racecourse', date: 'Mar 16', time: '19:00', price: 5500, status: 'Available', image: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Live in Mumbai.' },
+  { id: '10', title: 'Anubhav Singh Bassi: Kisi Ko Batana Mat', type: 'comedy', category: 'Standup', city: 'Delhi', venue: 'Siri Fort Aud.', date: 'Oct 22', time: '20:00', price: 1499, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1527224857830-43a7eaa58c73?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Standup special.' }
+];
 
+function getEventByShowId(showId: number) {
+  return eventsCatalog.find(e => e.id === String(showId)) || eventsCatalog[0];
+}
+
+router.get("/events", async (req, res) => {
+  res.json(eventsCatalog);
 });
 
 router.get("/events/:id", async (req, res) => {
   const eventId = parseInt(req.params.id as string);
   if (isNaN(eventId)) res.status(400).json({ error: "Invalid ID" });
 
-  
-  const eventsList = [
-    { id: '1', title: 'Arijit Singh Live', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Jio World Drive', date: 'Oct 14', time: '19:00', price: 2500, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1540039155732-d688126b8b0b?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Experience the magic.' },
-    { id: '2', title: 'Diljit Dosanjh: Dil-Luminati', type: 'concert', category: 'Music', city: 'Delhi', venue: 'JLN Stadium', date: 'Nov 02', time: '18:30', price: 3999, status: 'Sold out', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'The biggest tour of the year.' },
-    { id: '3', title: 'Jawan', type: 'movie', category: 'Cinema', city: 'Mumbai', venue: 'PVR IMAX', date: 'Sep 07', time: '20:00', price: 450, status: 'Available', image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Blockbuster movie.' },
-    { id: '4', title: 'Kalki 2898 AD', type: 'movie', category: 'Cinema', city: 'Bangalore', venue: 'Inox Megaplex', date: 'Jul 12', time: '17:45', price: 350, status: 'Filling fast', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Epic sci-fi.' },
-    { id: '5', title: 'Coldplay: Music of the Spheres', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'DY Patil Stadium', date: 'Jan 18', time: '18:00', price: 4500, status: 'Waitlist', image: 'https://images.unsplash.com/photo-1470229722913-7c090be3226a?q=80&w=800&auto=format&fit=crop', rating: 5.0, description: 'Global stadium tour.' },
-    { id: '6', title: 'Zakir Khan: Tathastu', type: 'comedy', category: 'Standup', city: 'Pune', venue: 'Balewadi Stadium', date: 'Dec 10', time: '19:30', price: 999, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?q=80&w=800&auto=format&fit=crop', rating: 4.9, description: 'Laugh out loud.' },
-    { id: '7', title: 'Sunburn Festival', type: 'concert', category: 'Music', city: 'Bangalore', venue: 'KTPO', date: 'Dec 29', time: '15:00', price: 3000, status: 'Available', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop', rating: 4.6, description: 'EDM festival.' },
-    { id: '8', title: 'Animal', type: 'movie', category: 'Cinema', city: 'Delhi', venue: 'PVR Director\'s Cut', date: 'Dec 01', time: '21:00', price: 800, status: 'Sold out', image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', rating: 4.5, description: 'Action thriller.' },
-    { id: '9', title: 'Ed Sheeran: Mathematics Tour', type: 'concert', category: 'Music', city: 'Mumbai', venue: 'Mahalaxmi Racecourse', date: 'Mar 16', time: '19:00', price: 5500, status: 'Available', image: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?q=80&w=800&auto=format&fit=crop', rating: 4.8, description: 'Live in Mumbai.' },
-    { id: '10', title: 'Anubhav Singh Bassi: Kisi Ko Batana Mat', type: 'comedy', category: 'Standup', city: 'Delhi', venue: 'Siri Fort Aud.', date: 'Oct 22', time: '20:00', price: 1499, status: 'Selling fast', image: 'https://images.unsplash.com/photo-1527224857830-43a7eaa58c73?q=80&w=800&auto=format&fit=crop', rating: 4.7, description: 'Standup special.' }
-  ];
-  
-  const event = eventsList.find(e => e.id === req.params.id);
+  const event = eventsCatalog.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ error: "Event not found" });
   
   res.json({
     ...event,
     shows: [
-      { id: "1", date: new Date().toISOString(), time: event.time, language: "English/Hindi", format: "Standard", available: 120 }
+      { id: event.id, date: new Date().toISOString(), time: event.time, language: "English/Hindi", format: "Standard", available: 120 }
     ]
   });
 
@@ -163,22 +152,16 @@ router.get("/bookings", requireAuth, async (req: AuthRequest, res) => {
     const seatRels = await db.select().from(bookingSeatsTable).where(eq(bookingSeatsTable.bookingId, b.id));
     const seatIds = seatRels.map(r => r.showSeatId.toString());
     
-    // Get show and event for details
-    const showInfo = await db.select().from(showsTable).where(eq(showsTable.id, b.showId));
-    if (!showInfo.length) continue;
-    const show = showInfo[0];
-    
-    const eventInfo = await db.select().from(eventsTable).where(eq(eventsTable.id, show.eventId));
-    if (!eventInfo.length) continue;
-    const event = eventInfo[0];
+    // Look up event from catalog to get correct title/venue/date/time
+    const ev = getEventByShowId(b.showId);
     
     response.push({
       id: b.id.toString(),
       reference: b.bookingReference,
-      eventTitle: event.title,
-      venue: event.venue,
-      date: show.date,
-      time: show.time,
+      eventTitle: ev.title,
+      venue: ev.venue,
+      date: ev.date,
+      time: ev.time,
       seats: seatIds,
       total: b.totalAmount,
       status: b.status,
@@ -227,41 +210,12 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
 
   const qrUrl = makeQr(reference);
 
-  // Look up real event details from the database
-  let eventTitle = "Paradox Event";
-  let eventVenue = "Paradox Venue";
-  let showDate = "";
-  let showTime = "";
-  try {
-    const showRows = await db.select().from(showsTable).where(eq(showsTable.id, validSeats[0].showId));
-    if (showRows.length) {
-      const show = showRows[0];
-      showDate = show.date || "";
-      showTime = show.time || "";
-      const eventRows = await db.select().from(eventsTable).where(eq(eventsTable.id, show.eventId));
-      if (eventRows.length) {
-        eventTitle = eventRows[0].title || eventTitle;
-        eventVenue = eventRows[0].venue || eventVenue;
-      }
-    }
-  } catch (_) { /* fallback to defaults */ }
+  // Look up real event details from the catalog
+  const ev = getEventByShowId(validSeats[0].showId);
 
-  res.status(201).json({
-    id: `b-${Date.now()}`,
-    reference,
-    eventTitle,
-    venue: eventVenue,
-    date: showDate,
-    time: showTime,
-    seats: validSeats.map(s => s.id.toString()),
-    total: body.total || (validSeats.length * 500),
-    status: "Confirmed",
-    qr: qrUrl
-  });
-
-  // Fire-and-forget email AFTER response is already sent
+  // Wait for the email to send before responding, because Vercel serverless kills the process after response
   const recipientEmail = body.email || req.user!.email;
-  const emailSubject = `Your Paradox Ticket: ${eventTitle}`;
+  const emailSubject = `Your Paradox Ticket: ${ev.title}`;
   const emailBody = `
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 12px; overflow: hidden;">
       <div style="background: #1a4f36; padding: 30px 24px; text-align: center;">
@@ -269,13 +223,13 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
         <p style="color: #c8a96e; margin: 8px 0 0; font-size: 13px; letter-spacing: 2px;">BOOKING CONFIRMED</p>
       </div>
       <div style="padding: 30px 24px;">
-        <h2 style="color: #1a4f36; margin: 0 0 6px; font-size: 24px;">${eventTitle}</h2>
+        <h2 style="color: #1a4f36; margin: 0 0 6px; font-size: 24px;">${ev.title}</h2>
         <p style="color: #888; margin: 0 0 20px; font-size: 14px;">Reference: <strong>${reference}</strong></p>
         <div style="background: #f4f1eb; padding: 20px; border-radius: 8px; margin: 0 0 24px;">
           <table style="width: 100%; font-size: 14px; color: #444;">
-            <tr><td style="padding: 6px 0; font-weight: 600;">📍 Venue</td><td style="padding: 6px 0; text-align: right;">${eventVenue}</td></tr>
-            <tr><td style="padding: 6px 0; font-weight: 600;">📅 Date</td><td style="padding: 6px 0; text-align: right;">${showDate}</td></tr>
-            <tr><td style="padding: 6px 0; font-weight: 600;">🕐 Time</td><td style="padding: 6px 0; text-align: right;">${showTime}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">📍 Venue</td><td style="padding: 6px 0; text-align: right;">${ev.venue}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">📅 Date</td><td style="padding: 6px 0; text-align: right;">${ev.date}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">🕐 Time</td><td style="padding: 6px 0; text-align: right;">${ev.time}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: 600;">💺 Seats</td><td style="padding: 6px 0; text-align: right;">${validSeats.map(s => s.id).join(", ")}</td></tr>
           </table>
         </div>
@@ -290,7 +244,66 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       </div>
     </div>
   `;
-  sendEmail(recipientEmail, emailSubject, emailBody).catch(err => console.error("[Email Error]", err));
+  try {
+    await sendEmail(recipientEmail, emailSubject, emailBody);
+  } catch (err) {
+    console.error("[Email Error]", err);
+  }
+
+  res.status(201).json({
+    id: `b-${Date.now()}`,
+    reference,
+    eventTitle: ev.title,
+    venue: ev.venue,
+    date: ev.date,
+    time: ev.time,
+    seats: validSeats.map(s => s.id.toString()),
+    total: body.total || (validSeats.length * 500),
+    status: "Confirmed",
+    qr: qrUrl
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// POST /bookings/:id/cancel — cancel a booking & release seats
+// ══════════════════════════════════════════════════════════════════════
+router.post("/bookings/:id/cancel", requireAuth, async (req: AuthRequest, res) => {
+  const bookingId = parseInt(req.params.id);
+  if (isNaN(bookingId)) return res.status(400).json({ error: "Invalid booking ID" });
+
+  const [booking] = await db.select().from(bookingsTable).where(
+    and(eq(bookingsTable.id, bookingId), eq(bookingsTable.userId, req.user!.id))
+  );
+
+  if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+  const seatRels = await db.select().from(bookingSeatsTable).where(eq(bookingSeatsTable.bookingId, bookingId));
+  const seatIds = seatRels.map(r => r.showSeatId);
+
+  await db.transaction(async (tx) => {
+    // Release seats
+    if (seatIds.length > 0) {
+      await tx.update(showSeatsTable)
+        .set({ status: "available", heldBy: null, heldUntil: null })
+        .where(inArray(showSeatsTable.id, seatIds));
+    }
+    await tx.delete(bookingSeatsTable).where(eq(bookingSeatsTable.bookingId, bookingId));
+    await tx.delete(bookingsTable).where(eq(bookingsTable.id, bookingId));
+  });
+
+  const ev = getEventByShowId(booking.showId);
+  res.json({
+    id: bookingId.toString(),
+    reference: booking.bookingReference,
+    eventTitle: ev.title,
+    venue: ev.venue,
+    date: ev.date,
+    time: ev.time,
+    seats: seatIds.map(s => s.toString()),
+    total: booking.totalAmount,
+    status: "Cancelled",
+    qr: ""
+  });
 });
 
 router.post("/waitlist", requireAuth, async (req: AuthRequest, res) => {

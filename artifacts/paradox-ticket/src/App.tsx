@@ -65,9 +65,7 @@ function Seats() { const { id = 'show-nocturne-2030' } = useParams<{ id: string 
 const list = (data as Seat[] | undefined)?.length ? data as Seat[] : fallbackSeats; useEffect(() => { const t = window.setInterval(() => setLeft(n => Math.max(0, n - 1)), 1000); return () => window.clearInterval(t); }, []); 
   const params = new URLSearchParams(window.location.search);
   const basePrice = parseInt(params.get('price') || '2500', 10);
-  const localBookings = (() => { try { return JSON.parse(localStorage.getItem('paradox-bookings') || '[]'); } catch { return []; } })();
-  const bookedSeatIds = localBookings.flatMap((b: any) => b.seats || []);
-  const dynamicSeats = list.map(s => ({ ...s, status: bookedSeatIds.includes(s.id) ? 'sold' : s.status, price: s.category === 'Premium' ? Math.floor(basePrice * 1.2) : basePrice }));
+  const dynamicSeats = list.map(s => ({ ...s, price: s.category === 'Premium' ? Math.floor(basePrice * 1.2) : basePrice }));
   const total = selected.reduce((a, id) => a + (dynamicSeats.find(s => s.id === id)?.price || 0), 0);
   const rows = useMemo(() => Object.entries(Object.groupBy(dynamicSeats, s => s.row)), [dynamicSeats]);
   const { user } = useAuth(); const go = () => {

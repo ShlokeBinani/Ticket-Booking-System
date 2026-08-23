@@ -191,16 +191,12 @@ router.get("/bookings", requireAuth, async (req: AuthRequest, res) => {
 
 router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const body = CreateBookingBody.parse(req.body);
-  
-  // We deduce seatIds from the DB where heldBy = req.user.id and status = held
-  // In a robust implementation, holdId would map to specific seats.
   const now = new Date();
   
   const heldSeats = await db.select().from(showSeatsTable)
     .where(and(
       eq(showSeatsTable.heldBy, req.user!.id),
       eq(showSeatsTable.status, "held")
-      // eq(showSeatsTable.heldUntil > now) -- done below
     ));
     
   const validSeats = heldSeats.filter(s => s.heldUntil && s.heldUntil > now);
@@ -212,7 +208,6 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
   const reference = `PX${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   
   await db.transaction(async (tx) => {
-    // Insert booking
     const [booking] = await tx.insert(bookingsTable).values({
       userId: req.user!.id,
       showId: validSeats[0].showId,
@@ -221,59 +216,81 @@ router.post("/bookings", requireAuth, async (req: AuthRequest, res) => {
       status: body.paymentMethod === "venue" ? "Pay at venue" : "Confirmed"
     }).returning();
 
-    // Mark seats as booked
     await tx.update(showSeatsTable)
       .set({ status: "booked", heldUntil: null })
       .where(inArray(showSeatsTable.id, validSeats.map(s => s.id)));
       
-    // Insert bookingSeats
     await tx.insert(bookingSeatsTable).values(
       validSeats.map(s => ({ bookingId: booking.id, showSeatId: s.id }))
     );
   });
 
-  // Generate QR
   const qrUrl = makeQr(reference);
 
-  
-  const emailSubject = `Your Paradox Ticket: ${body.eventTitle || "Confirmed"}`;
-    const emailBody = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <h1 style="color: #1a4f36;">It's official. You're going.</h1>
-        <p style="font-size: 16px;">Here is your ticket for <strong>${body.eventTitle || "the event"}</strong>.</p>
-        
-        <div style="background: #f4f1eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0;"><strong>Event:</strong> ${body.eventTitle}</p>
-          <p style="margin: 0 0 10px 0;"><strong>Venue:</strong> ${body.venue}</p>
-          <p style="margin: 0 0 10px 0;"><strong>Date & Time:</strong> ${body.date} at ${body.time}</p>
-          <p style="margin: 0;"><strong>Seats:</strong> ${validSeats.map(s => s.id).join(", ")}</p>
-        </div>
-
-        <p style="font-size: 14px; color: #666;">Please arrive 20 minutes before curtain. Present the QR code below at the door.</p>
-        
-        <div style="text-align: center; margin: 30px 0;">
-          <img src="${qrUrl}" alt="Ticket QR Code" style="width: 200px; height: 200px; border: 2px solid #eaeaea; padding: 10px; border-radius: 12px;"/>
-          <p style="font-family: monospace; letter-spacing: 2px; color: #888;">${reference}</p>
-        </div>
-        
-        <p style="font-size: 12px; color: #999; text-align: center;">See you there,<br/>Paradox Ticket</p>
-      </div>
-    `;
-
-    await sendEmail(body.email || req.user!.email, emailSubject, emailBody);
+  // Look up real event details from the database
+  let eventTitle = "Paradox Event";
+  let eventVenue = "Paradox Venue";
+  let showDate = "";
+  let showTime = "";
+  try {
+    const showRows = await db.select().from(showsTable).where(eq(showsTable.id, validSeats[0].showId));
+    if (showRows.length) {
+      const show = showRows[0];
+      showDate = show.date || "";
+      showTime = show.time || "";
+      const eventRows = await db.select().from(eventsTable).where(eq(eventsTable.id, show.eventId));
+      if (eventRows.length) {
+        eventTitle = eventRows[0].title || eventTitle;
+        eventVenue = eventRows[0].venue || eventVenue;
+      }
+    }
+  } catch (_) { /* fallback to defaults */ }
 
   res.status(201).json({
     id: `b-${Date.now()}`,
     reference,
-    eventTitle: body.eventTitle || "Paradox Event",
-    venue: body.venue || "Paradox Venue",
-    date: body.date || "Unknown Date",
-    time: body.time || "Unknown Time",
+    eventTitle,
+    venue: eventVenue,
+    date: showDate,
+    time: showTime,
     seats: validSeats.map(s => s.id.toString()),
     total: body.total || (validSeats.length * 500),
     status: "Confirmed",
     qr: qrUrl
   });
+
+  // Fire-and-forget email AFTER response is already sent
+  const recipientEmail = body.email || req.user!.email;
+  const emailSubject = `Your Paradox Ticket: ${eventTitle}`;
+  const emailBody = `
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 12px; overflow: hidden;">
+      <div style="background: #1a4f36; padding: 30px 24px; text-align: center;">
+        <h1 style="color: #fff; margin: 0; font-size: 28px;">🎫 Paradox Ticket</h1>
+        <p style="color: #c8a96e; margin: 8px 0 0; font-size: 13px; letter-spacing: 2px;">BOOKING CONFIRMED</p>
+      </div>
+      <div style="padding: 30px 24px;">
+        <h2 style="color: #1a4f36; margin: 0 0 6px; font-size: 24px;">${eventTitle}</h2>
+        <p style="color: #888; margin: 0 0 20px; font-size: 14px;">Reference: <strong>${reference}</strong></p>
+        <div style="background: #f4f1eb; padding: 20px; border-radius: 8px; margin: 0 0 24px;">
+          <table style="width: 100%; font-size: 14px; color: #444;">
+            <tr><td style="padding: 6px 0; font-weight: 600;">📍 Venue</td><td style="padding: 6px 0; text-align: right;">${eventVenue}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">📅 Date</td><td style="padding: 6px 0; text-align: right;">${showDate}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">🕐 Time</td><td style="padding: 6px 0; text-align: right;">${showTime}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 600;">💺 Seats</td><td style="padding: 6px 0; text-align: right;">${validSeats.map(s => s.id).join(", ")}</td></tr>
+          </table>
+        </div>
+        <p style="font-size: 14px; color: #666; text-align: center;">Please arrive 20 minutes before curtain.<br/>Present the QR code below at the door.</p>
+        <div style="text-align: center; margin: 24px 0;">
+          <img src="${qrUrl}" alt="Ticket QR Code" style="width: 200px; height: 200px; border: 2px solid #eaeaea; padding: 10px; border-radius: 12px;"/>
+          <p style="font-family: monospace; letter-spacing: 3px; color: #888; margin-top: 10px; font-size: 16px;">${reference}</p>
+        </div>
+      </div>
+      <div style="background: #f9f7f4; padding: 16px 24px; text-align: center; font-size: 11px; color: #999;">
+        See you there — Paradox Ticket
+      </div>
+    </div>
+  `;
+  sendEmail(recipientEmail, emailSubject, emailBody).catch(err => console.error("[Email Error]", err));
 });
 
 router.post("/waitlist", requireAuth, async (req: AuthRequest, res) => {
@@ -281,14 +298,13 @@ router.post("/waitlist", requireAuth, async (req: AuthRequest, res) => {
   
   const [entry] = await db.insert(waitlistTable).values({
     userId: req.user!.id,
-    showId: 1, // hardcoded for now or fetch from body if available
+    showId: 1,
     categoryId: body.category === "Premium" ? 1 : 2,
     status: "waiting"
   }).returning();
 
   res.status(201).json({ id: entry.id.toString(), position: entry.id, category: body.category, status: "Watching" });
 });
-
 
 router.get("/organiser/stats", requireAuth, async (req: AuthRequest, res) => {
   if (req.user?.role !== "organiser" && req.user?.role !== "admin") return res.status(403).json({ error: "Unauthorized" });

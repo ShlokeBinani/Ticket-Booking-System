@@ -362,6 +362,65 @@ function Chatbot() {
   );
 }
 
-function App() { const [location] = useLocation(); return <QueryClientProvider client={client}><TooltipProvider><Router base={import.meta.env.BASE_URL.replace(/\/$/, '')}><ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/events" component={Events} /><Route path="/events/:id" component={Detail} /><Route path="/shows/:id/seats" component={Seats} /><Route path="/checkout/:holdId" component={Checkout} /><Route path="/bookings" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (user === null) loc('/auth'); }, [user]); return user ? <Bookings /> : null; }} /><Route path="/waitlist/offer/:token" component={Offer} /><Route path="/organiser" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (!user || user.role !== 'organiser') loc('/'); }, [user]); return user?.role === 'organiser' ? <Studio /> : null; }} /><Route path="/admin" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (!user || user.role !== 'admin') loc('/'); }, [user]); return user?.role === 'admin' ? <Studio admin /> : null; }} /><Route path="/auth" component={Auth} /><Route path="/support" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (user === null) loc('/auth'); }, [user]); return user ? <Support /> : null; }} /><Route path="/about" component={About} /><Route component={NotFoundPage} /></Switch></ErrorBoundary></Router><Toaster /><Chatbot /></TooltipProvider></QueryClientProvider>; }
+
+function HoldBanner() {
+  const [, setLocation] = useLocation();
+  const [hold, setHold] = useState<any>(null);
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const checkHold = () => {
+      try {
+        const stored = localStorage.getItem('paradox-active-hold');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.expiresAt > Date.now()) {
+            setHold(parsed);
+          } else {
+            localStorage.removeItem('paradox-active-hold');
+            setHold(null);
+          }
+        } else {
+          setHold(null);
+        }
+      } catch {}
+    };
+    
+    checkHold();
+    const interval = setInterval(() => {
+      checkHold();
+      if (hold) {
+        const diff = hold.expiresAt - Date.now();
+        if (diff <= 0) {
+          localStorage.removeItem('paradox-active-hold');
+          setHold(null);
+        } else {
+          const m = Math.floor(diff / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+          setTimeLeft(`${m}:${s < 10 ? '0' : ''}${s}`);
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [hold?.expiresAt]);
+
+  if (!hold || window.location.pathname.startsWith('/checkout')) return null;
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 rounded-full border border-accent bg-card px-6 py-3 shadow-2xl">
+      <div className="flex items-center gap-3">
+        <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+        <p className="text-sm font-semibold">You have seats held!</p>
+      </div>
+      <p className="text-xs text-foreground/60 font-mono">{timeLeft} left</p>
+      <div className="flex items-center gap-3">
+        <button onClick={() => { localStorage.removeItem('paradox-active-hold'); setHold(null); }} className="text-xs text-foreground/45 hover:text-accent">Release</button>
+        <button onClick={() => setLocation(`/checkout/${hold.eventId}`)} className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-primary">Complete Payment</button>
+      </div>
+    </div>
+  );
+}
+
+function App() { const [location] = useLocation(); return <QueryClientProvider client={client}><TooltipProvider><Router base={import.meta.env.BASE_URL.replace(/\/$/, '')}><ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/events" component={Events} /><Route path="/events/:id" component={Detail} /><Route path="/shows/:id/seats" component={Seats} /><Route path="/checkout/:holdId" component={Checkout} /><Route path="/bookings" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (user === null) loc('/auth'); }, [user]); return user ? <Bookings /> : null; }} /><Route path="/waitlist/offer/:token" component={Offer} /><Route path="/organiser" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (!user || user.role !== 'organiser') loc('/'); }, [user]); return user?.role === 'organiser' ? <Studio /> : null; }} /><Route path="/admin" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (!user || user.role !== 'admin') loc('/'); }, [user]); return user?.role === 'admin' ? <Studio admin /> : null; }} /><Route path="/auth" component={Auth} /><Route path="/support" component={() => { const {user} = useAuth(); const [,loc] = useLocation(); useEffect(() => { if (user === null) loc('/auth'); }, [user]); return user ? <Support /> : null; }} /><Route path="/about" component={About} /><Route component={NotFoundPage} /></Switch></ErrorBoundary></Router><Toaster /><HoldBanner /><Chatbot /></TooltipProvider></QueryClientProvider>; }
 const client = new QueryClient();
 export default App;

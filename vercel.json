@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "artifacts/paradox-ticket/api/**/*.ts": {
+      "includeFiles": "../../api-server/dist/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

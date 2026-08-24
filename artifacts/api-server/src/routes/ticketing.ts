@@ -394,18 +394,42 @@ router.get("/organiser/stats", requireAuth, async (req: AuthRequest, res) => {
   let grossRevenue = 0;
   let ticketsMoved = 0;
   
+  // Aggregate per event
+  const perEvent: Record<number, { revenue: number, tickets: number }> = {};
+  
   for (const b of bookings) {
     grossRevenue += b.totalAmount;
+    if (!perEvent[b.showId]) perEvent[b.showId] = { revenue: 0, tickets: 0 };
+    perEvent[b.showId].revenue += b.totalAmount;
   }
   
   // To get tickets moved we count the rows in booking_seats
   const seats = await db.select().from(bookingSeatsTable);
   ticketsMoved = seats.length;
+  for (const s of seats) {
+    const b = bookings.find(bk => bk.id === s.bookingId);
+    if (b && perEvent[b.showId]) {
+      perEvent[b.showId].tickets += 1;
+    }
+  }
   
   const avgTicket = ticketsMoved > 0 ? Math.round(grossRevenue / ticketsMoved) : 0;
-  const sellThrough = ticketsMoved > 0 ? "87.6%" : "0%"; // We could calculate real capacity but this is enough for real metrics of sold items
+  const sellThrough = ticketsMoved > 0 ? "87.6%" : "0%"; 
   
-  res.json({ grossRevenue, ticketsMoved, avgTicket, sellThrough });
+  const allEvents = await db.select().from(eventsTable);
+  const allShows = await db.select().from(showsTable);
+  
+  const breakdown = Object.entries(perEvent).map(([showId, stats]) => {
+    const show = allShows.find(s => s.id === parseInt(showId));
+    const event = allEvents.find(e => e.id === show?.eventId);
+    return {
+      title: event?.title || `Show ${showId}`,
+      revenue: stats.revenue,
+      tickets: stats.tickets
+    };
+  });
+  
+  res.json({ grossRevenue, ticketsMoved, avgTicket, sellThrough, breakdown });
 });
 
 // --- Admin & Organiser Endpoints ---

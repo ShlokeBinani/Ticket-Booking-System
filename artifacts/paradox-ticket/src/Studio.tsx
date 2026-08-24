@@ -91,15 +91,41 @@ export function Studio({ admin = false }: { admin?: boolean }) {
       </div>
 
       {tab === 'Overview' && !admin && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
-            <p className="text-xs text-primary-foreground opacity-50">Gross Revenue</p>
-            <p className="text-3xl mt-2 font-bold">₹{metrics.grossRevenue}</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
+              <p className="text-xs text-primary-foreground opacity-50">Gross Revenue</p>
+              <p className="text-3xl mt-2 font-bold">₹{metrics.grossRevenue}</p>
+            </div>
+            <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
+              <p className="text-xs text-primary-foreground opacity-50">Tickets Moved</p>
+              <p className="text-3xl mt-2 font-bold">{metrics.ticketsMoved}</p>
+            </div>
           </div>
-          <div className="p-6 bg-card border border-foreground/10 text-foreground rounded">
-            <p className="text-xs text-primary-foreground opacity-50">Tickets Moved</p>
-            <p className="text-3xl mt-2 font-bold">{metrics.ticketsMoved}</p>
-          </div>
+          
+          {metrics.breakdown && metrics.breakdown.length > 0 && (
+            <div className="bg-card text-foreground p-6 border border-foreground/10 rounded">
+              <h2 className="text-2xl font-bold mb-4">Revenue per event</h2>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-foreground/10">
+                    <th className="pb-2">Event</th>
+                    <th className="pb-2">Tickets Sold</th>
+                    <th className="pb-2">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.breakdown.map((b: any, i: number) => (
+                    <tr key={i} className="border-b border-foreground/10 last:border-0">
+                      <td className="py-3">{b.title}</td>
+                      <td>{b.tickets}</td>
+                      <td>₹{b.revenue}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

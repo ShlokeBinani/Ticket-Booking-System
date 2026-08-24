@@ -433,7 +433,7 @@ importers:
   lib/api-client-react:
     dependencies:
       '@tanstack/react-query':
-        specifier: 'catalog:'
+        specifier: '>=5'
         version: 5.102.0(react@19.2.8)
       react:
         specifier: '>=18'

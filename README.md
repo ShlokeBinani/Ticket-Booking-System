@@ -28,9 +28,21 @@ A full-stack event ticketing system with real-time seat maps, concurrency-safe b
 | Homepage & Events | Organiser Studio |
 | :---: | :---: |
 | <img src="assets/homepage.png" width="400" alt="Paradox Ticket Homepage" /> <br> *Elegant landing page* | <img src="assets/organiser_dashboard.png" width="400" alt="Organiser Dashboard" /> <br> *Live revenue and ticket metrics* |
-| <img src="assets/events.png" width="400" alt="Events Listing" /> <br> *Browse upcoming shows* | <img src="assets/organiser_events.png" width="400" alt="Manage Events" /> <br> *Create and manage events* |
+| <img src="assets/events.png" width="400" alt="Events Listing" /> <br> *Browse upcoming shows* | <img src="assets/admin_dashboard.png" width="400" alt="Admin Dashboard" /> <br> *System-wide User & Venue Management* |
 | **Interactive Support Chatbot** | |
 | <img src="assets/chatbot.png" width="400" alt="Support Chatbot" /> <br> *AI-powered FAQ & human handover* | |
+
+---
+
+## Demo Accounts
+
+You can test the different role-based views using the following credentials. All passwords are `12345678`.
+
+| Role | Email | Features |
+|---|---|---|
+| **Admin** | `admin@demo.com` | User management, Venue creation |
+| **Organiser** | `organizer@demo.com` | Event creation, Revenue metrics, Studio access |
+| **Customer** | `customer@demo.com` | Ticket booking, Waitlist, QR E-tickets |
 
 ---
 
@@ -489,3 +501,7 @@ See [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) for the full 800-word system design w
 ## License
 
 MIT
+<br>
+<div align="center">
+  <b>Made by Shloke Binani</b>
+</div>

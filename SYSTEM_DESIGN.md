@@ -59,3 +59,8 @@ This creates a self-healing cycle: seat released → offered to next person → 
 ## Summary
 
 The system's reliability rests on three pillars: **PostgreSQL row-level locks** for correctness under concurrency, **TTL-based holds** with triple-layer auto-release for liveness, and **FIFO waitlist assignment** with time-limited offers for fairness. Together, these mechanisms ensure that every seat is either definitively booked by exactly one customer or available for purchase — never stuck in an inconsistent intermediate state.
+
+<br>
+<div align="center">
+  <b>Made by Shloke Binani</b>
+</div>

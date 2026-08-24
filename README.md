@@ -256,58 +256,142 @@ All endpoints are prefixed with `/api`.
 
 ### Authentication
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/auth/register` | No | Register user. Body: `{ email, password, name, role? }` → `{ user, token }` |
-| `POST` | `/auth/login` | No | Login. Body: `{ email, password }` → `{ user, token }` |
+1) Register User
+   `POST /auth/register`
+   - **Auth:** No
+   - **Body:** `{ email, password, name, role? }`
+   - **Returns:** `{ user, token }`
+
+2) Login User
+   `POST /auth/login`
+   - **Auth:** No
+   - **Body:** `{ email, password }`
+   - **Returns:** `{ user, token }`
 
 Auth uses **Bearer JWT tokens** (7-day expiry). Include `Authorization: Bearer <token>` in all protected requests.
 
 ### Events & Shows
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/events` | No | List all events with venue/date info |
-| `GET` | `/events/:id` | No | Event detail with shows list |
-| `GET` | `/shows/:id/seats` | No | Seat map for a show (with live hold expiry check) |
+1) List all events
+   `GET /events`
+   - **Auth:** No
+   - **Description:** List all events with venue/date info
+
+2) Get event details
+   `GET /events/:id`
+   - **Auth:** No
+   - **Description:** Event detail with shows list
+
+3) Get seat map for a show
+   `GET /shows/:id/seats`
+   - **Auth:** No
+   - **Description:** Seat map for a show (with live hold expiry check)
 
 ### Booking Flow
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/shows/:id/holds` | Yes | Hold seats (10-min TTL). Body: `{ seatIds: string[] }` |
-| `POST` | `/bookings` | Yes | Confirm booking from held seats. Body: `{ holdId, email, paymentMethod }` |
-| `GET` | `/bookings` | Yes | List user's bookings with QR codes |
-| `POST` | `/bookings/:id/cancel` | Yes | Cancel booking, release seats, trigger waitlist |
+1) Hold seats
+   `POST /shows/:id/holds`
+   - **Auth:** Yes
+   - **Description:** Hold seats (10-min TTL)
+   - **Body:** `{ seatIds: string[] }`
+
+2) Confirm booking
+   `POST /bookings`
+   - **Auth:** Yes
+   - **Description:** Confirm booking from held seats
+   - **Body:** `{ holdId, email, paymentMethod }`
+
+3) List user's bookings
+   `GET /bookings`
+   - **Auth:** Yes
+   - **Description:** List user's bookings with QR codes
+
+4) Cancel booking
+   `POST /bookings/:id/cancel`
+   - **Auth:** Yes
+   - **Description:** Cancel booking, release seats, trigger waitlist
 
 ### Waitlist
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/waitlist` | Yes | Join waitlist. Body: `{ eventId, category, email }` |
-| `POST` | `/waitlist/claim` | No | Claim offered seat. Body: `{ token, email? }` |
+1) Join waitlist
+   `POST /waitlist`
+   - **Auth:** Yes
+   - **Description:** Join waitlist
+   - **Body:** `{ eventId, category, email }`
+
+2) Claim offered seat
+   `POST /waitlist/claim`
+   - **Auth:** No
+   - **Description:** Claim offered seat
+   - **Body:** `{ token, email? }`
 
 ### Admin & Organiser
 
-| Method | Endpoint | Auth | Roles | Description |
-|---|---|---|---|---|
-| `GET` | `/organiser/stats` | Yes | organiser, admin | Revenue metrics & per-event breakdown |
-| `GET` | `/admin/users` | Yes | admin | List all users |
-| `PUT` | `/admin/users/:id/role` | Yes | admin | Change user role |
-| `GET` | `/admin/venues` | Yes | organiser, admin | List venues |
-| `POST` | `/admin/venues` | Yes | admin | Create venue |
-| `DELETE` | `/admin/venues/:id` | Yes | admin | Delete venue |
-| `POST` | `/organiser/events` | Yes | organiser, admin | Create event + show |
-| `DELETE` | `/organiser/events/:id` | Yes | organiser, admin | Delete event |
+1) Get revenue metrics
+   `GET /organiser/stats`
+   - **Auth:** Yes
+   - **Roles:** organiser, admin
+   - **Description:** Revenue metrics & per-event breakdown
+
+2) List all users
+   `GET /admin/users`
+   - **Auth:** Yes
+   - **Roles:** admin
+   - **Description:** List all users
+
+3) Change user role
+   `PUT /admin/users/:id/role`
+   - **Auth:** Yes
+   - **Roles:** admin
+   - **Description:** Change user role
+
+4) List venues
+   `GET /admin/venues`
+   - **Auth:** Yes
+   - **Roles:** organiser, admin
+   - **Description:** List venues
+
+5) Create venue
+   `POST /admin/venues`
+   - **Auth:** Yes
+   - **Roles:** admin
+   - **Description:** Create venue
+
+6) Delete venue
+   `DELETE /admin/venues/:id`
+   - **Auth:** Yes
+   - **Roles:** admin
+   - **Description:** Delete venue
+
+7) Create event
+   `POST /organiser/events`
+   - **Auth:** Yes
+   - **Roles:** organiser, admin
+   - **Description:** Create event + show
+
+8) Delete event
+   `DELETE /organiser/events/:id`
+   - **Auth:** Yes
+   - **Roles:** organiser, admin
+   - **Description:** Delete event
 
 ### Support Tickets
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/support` | Yes | List tickets (scoped by role) |
-| `POST` | `/support` | Yes | Create ticket. Body: `{ subject, message }` |
-| `PUT` | `/support/:id` | Yes (admin/organiser) | Reply, resolve, or assign ticket |
+1) List tickets
+   `GET /support`
+   - **Auth:** Yes
+   - **Description:** List tickets (scoped by role)
 
+2) Create ticket
+   `POST /support`
+   - **Auth:** Yes
+   - **Description:** Create ticket
+   - **Body:** `{ subject, message }`
+
+3) Update ticket
+   `PUT /support/:id`
+   - **Auth:** Yes (admin/organiser)
+   - **Description:** Reply, resolve, or assign ticket
 ---
 
 ## Seat Hold & TTL Mechanism

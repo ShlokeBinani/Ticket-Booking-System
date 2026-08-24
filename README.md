@@ -2,12 +2,13 @@
 
 A full-stack event ticketing system with real-time seat maps, concurrency-safe booking, automated waitlist management, and QR-code e-tickets.
 
-> **Live demo**: [paradox-ticket-platform.vercel.app](https://ticket-booking-system-paradox-ticke.vercel.app)
+> **Live demo**: [https://ticket-booking-system-paradox-ticke.vercel.app](https://ticket-booking-system-paradox-ticke.vercel.app)
 
 ---
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -19,6 +20,17 @@ A full-stack event ticketing system with real-time seat maps, concurrency-safe b
 - [Concurrency Protection](#concurrency-protection)
 - [Waitlist & Auto-Assignment](#waitlist--auto-assignment)
 - [System Design](#system-design)
+
+---
+
+## Screenshots
+
+| Homepage & Events | Organiser Studio |
+| :---: | :---: |
+| <img src="assets/homepage.png" width="400" alt="Paradox Ticket Homepage" /> <br> *Elegant landing page* | <img src="assets/organiser_dashboard.png" width="400" alt="Organiser Dashboard" /> <br> *Live revenue and ticket metrics* |
+| <img src="assets/events.png" width="400" alt="Events Listing" /> <br> *Browse upcoming shows* | <img src="assets/organiser_events.png" width="400" alt="Manage Events" /> <br> *Create and manage events* |
+| **Interactive Support Chatbot** | |
+| <img src="assets/chatbot.png" width="400" alt="Support Chatbot" /> <br> *AI-powered FAQ & human handover* | |
 
 ---
 

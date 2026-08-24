@@ -129,8 +129,8 @@ function Support() {
     if (token) {
       const baseUrl = import.meta.env.VITE_API_URL || '';
       fetch(`${baseUrl}/api/support`, { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(res => res.json())
-        .then(data => setTickets(data))
+        .then(res => res.ok ? res.json() : [])
+        .then(data => setTickets(Array.isArray(data) ? data : []))
         .catch(console.error);
     }
   }, [token, done]);
@@ -204,6 +204,7 @@ function NotFoundPage() { return <Shell><section className="mx-auto max-w-3xl px
 function Chatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState('');
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   useEffect(() => {
@@ -231,15 +232,34 @@ function Chatbot() {
     setMessages(prev => [...prev, { role: 'user', text: faq.q }, { role: 'bot', text: faq.a, link: faq.link }]);
   };
 
+  const sendMsg = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const text = input.trim();
+    setMessages(prev => [...prev, { role: 'user', text }]);
+    setInput('');
+
+    // Simple keyword matching for FAQ bot
+    const found = faqs.find(f => text.toLowerCase().includes(f.q.toLowerCase().split(' ')[0]));
+    
+    setTimeout(() => {
+      if (found) {
+        setMessages(prev => [...prev, { role: 'bot', text: found.a, link: found.link }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'bot', text: "I'm not sure how to answer that yet.", link: { url: '/support', label: 'Raise a ticket with a human' } }]);
+      }
+    }, 500);
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {open && (
-        <div className="mb-4 w-80 rounded-2xl border border-foreground/15 bg-background shadow-2xl overflow-hidden">
+        <div className="mb-4 w-80 rounded-2xl border border-foreground/15 bg-background shadow-2xl overflow-hidden flex flex-col">
           <div className="bg-primary p-4 text-primary-foreground flex justify-between items-center">
             <span className="font-semibold text-sm">Dot</span>
             <button onClick={() => setOpen(false)}><X size={16} /></button>
           </div>
-          <div className="h-64 overflow-y-auto p-4 space-y-3 bg-secondary/20">
+          <div className="h-64 overflow-y-auto p-4 space-y-3 bg-secondary/20 flex flex-col flex-1">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-lg p-3 text-xs ${m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card border border-foreground/10'}`}>
@@ -259,10 +279,11 @@ function Chatbot() {
                 {faq.q}
               </button>
             ))}
-            <button onClick={() => { setOpen(false); setLocation('/support'); }} className="text-[10px] rounded-full border border-accent/20 px-3 py-1.5 bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors">
-              Raise a ticket
-            </button>
           </div>
+          <form onSubmit={sendMsg} className="border-t border-foreground/10 flex">
+            <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message..." className="flex-1 bg-transparent p-3 text-xs outline-none" />
+            <button type="submit" className="px-4 text-accent"><ArrowRight size={16} /></button>
+          </form>
         </div>
       )}
       <button type="button" onClick={() => setOpen(!open)} className="h-14 w-14 rounded-full bg-accent text-accent-foreground shadow-lg grid place-items-center hover:scale-105 transition-transform">

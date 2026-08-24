@@ -418,16 +418,24 @@ router.get("/organiser/stats", requireAuth, async (req: AuthRequest, res) => {
   
   const allEvents = await db.select().from(eventsTable);
   const allShows = await db.select().from(showsTable);
-  
-  const breakdown = Object.entries(perEvent).map(([showId, stats]) => {
-    const show = allShows.find(s => s.id === parseInt(showId));
-    const event = allEvents.find(e => e.id === show?.eventId);
-    return {
-      title: event?.title || `Show ${showId}`,
-      revenue: stats.revenue,
-      tickets: stats.tickets
-    };
-  });
+    const breakdown = allEvents.map(event => {
+      let eventRevenue = 0;
+      let eventTickets = 0;
+      
+      const eventShows = allShows.filter(s => s.eventId === event.id);
+      eventShows.forEach(s => {
+        if (perEvent[s.id]) {
+          eventRevenue += perEvent[s.id].revenue;
+          eventTickets += perEvent[s.id].tickets;
+        }
+      });
+      
+      return {
+        title: event.title,
+        revenue: eventRevenue,
+        tickets: eventTickets
+      };
+    });
   
   res.json({ grossRevenue, ticketsMoved, avgTicket, sellThrough, breakdown });
 });

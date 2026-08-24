@@ -1,1 +1,0 @@
-const { db } = require('../../lib/db/dist/index.cjs'); async function test() { try { const res = await db.select().from(require('../../lib/db/dist/schema.cjs').usersTable); console.log(res); } catch (e) { console.log(e); } process.exit(0); } test();

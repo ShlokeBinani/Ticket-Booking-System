@@ -45,7 +45,7 @@ router.post("/waitlist/claim", async (req, res) => {
     await sendEmail(email, "Your seat is confirmed!", "You have successfully claimed your waitlist seat.");
   }
   
-  res.json({ success: true });
+  return res.json({ success: true });
 });
 
 export default router;

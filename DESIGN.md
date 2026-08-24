@@ -1,4 +1,4 @@
-# Paradox Ticket system design
+# Paradox Ticket system design 
 
 Paradox Ticket treats a seat as a scarce, short-lived resource. A seat is never considered available from a client-side flag alone: availability is calculated from confirmed bookings plus active holds. A hold stores its seat ids, owner, show, creation time, and `expires_at`; the default time-to-live is ten minutes. Every read removes expired holds before building the seat map, so abandoned checkout becomes available immediately even if a scheduled worker is delayed. A periodic sweeper can perform the same cleanup in production and emit waitlist events.
 
